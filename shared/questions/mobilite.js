@@ -1,0 +1,158 @@
+/**
+ * Thème Mobilité (series: 3)
+ */
+export default [
+  {
+    id: 'mobilite-1',
+    series: 3,
+    text: 'Certains employeurs peuvent participer aux frais de transport de leurs salariés.',
+    choices: ['Vrai', 'Faux', 'Uniquement dans le public', 'Uniquement en Île-de-France'],
+    answer: 0,
+    explanation:
+      'Vrai : le Code du travail prévoit notamment la prise en charge d’une partie des titres d’abonnement pour les déplacements domicile–travail.',
+  },
+  {
+    id: 'mobilite-2',
+    series: 3,
+    text: 'Combien de kilomètres un salarié français parcourt-il en moyenne pour se rendre au travail ?',
+    choices: ['6 km', '13 km', '28 km', '40 km'],
+    answer: 1,
+    explanation: '13 km en moyenne selon l’EMP (enquête mobilité des personnes) 2019.',
+  },
+  {
+    id: 'mobilite-3',
+    series: 3,
+    text: 'La Région Hauts-de-France propose-t-elle une aide pour les salariés utilisant leur voiture ou leur deux-roues pour aller travailler ?',
+    choices: ['Vrai', 'Faux', 'Uniquement le train', 'Uniquement le vélo'],
+    answer: 0,
+    explanation:
+      'Vrai : c’est l’aide régionale au transport pour les salariés (ex. aide au covoiturage / voiture sous conditions de kilométrage).',
+  },
+  {
+    id: 'mobilite-4',
+    series: 3,
+    text: 'Les étudiants qui parcourent au moins 100 km au cours de la semaine pour rejoindre leur lieu de formation peuvent bénéficier de l’aide régionale au transport aux particuliers.',
+    choices: ['Vrai', 'Faux', 'Uniquement les apprentis', 'Uniquement hors région'],
+    answer: 0,
+    explanation: 'Vrai.',
+  },
+  {
+    id: 'mobilite-5',
+    series: 3,
+    text: 'Puis-je financer entièrement mon permis avec mon CPF ?',
+    choices: ['Vrai', 'Faux', 'Uniquement le code', 'Uniquement avant 25 ans'],
+    answer: 1,
+    explanation:
+      'Faux : vous ne pouvez pas utiliser plus de 500 € de votre CPF pour financer cette préparation (épreuves théoriques et pratiques du permis de conduire du groupe léger).',
+  },
+  {
+    id: 'mobilite-6',
+    series: 3,
+    text: 'Parmi ces organismes, lesquels peuvent accompagner une personne dans ses démarches liées à la mobilité ?',
+    choices: [
+      'Mission Locale et France Travail',
+      'Uniquement la CAF',
+      'Uniquement la Préfecture',
+      'Uniquement les auto-écoles',
+    ],
+    answer: 0,
+    explanation:
+      'Plusieurs structures peuvent aider : Mission Locale, France Travail, PLIE, CCAS, associations / plateformes mobilité…',
+  },
+  {
+    id: 'mobilite-7',
+    series: 3,
+    text: 'Parmi ces propositions, lesquels sont des avantages du covoiturage ?',
+    choices: [
+      'Réduire carburant, entretien, et l’impact écologique',
+      'Augmenter le prix du permis',
+      'Interdire les transports en commun',
+      'Supprimer l’assurance auto',
+    ],
+    answer: 0,
+    explanation:
+      'Le covoiturage réduit les coûts (carburant, assurance, entretien…) et est plus écologique, tout en favorisant la convivialité.',
+  },
+  {
+    id: 'mobilite-8',
+    series: 3,
+    text: 'Qui est Sam ?',
+    choices: [
+      'Celui qui ne boit pas et ramène les autres après la fête',
+      'Un radar automatique',
+      'Un type de permis moto',
+      'Une vignette Crit’Air',
+    ],
+    answer: 0,
+    explanation: 'Sam, c’est celui qui ne boit pas et qui ramène les autres après la fête.',
+  },
+  {
+    id: 'mobilite-9',
+    series: 3,
+    text: 'Quelle est la vitesse maximale autorisée en EDPM (équipement de déplacement personnel motorisé) ?',
+    choices: ['15 km/h', '25 km/h', '35 km/h', '45 km/h'],
+    answer: 1,
+    explanation: 'Les engins ne doivent pas pouvoir rouler à plus de 25 km/h.',
+  },
+  {
+    id: 'mobilite-10',
+    series: 3,
+    text: 'Dans quelles circonstances le port du casque est-il obligatoire en trottinette électrique ?',
+    choices: [
+      'S’il y a un arrêté municipal, et hors agglomération',
+      'Toujours en ville',
+      'Jamais',
+      'Uniquement la nuit',
+    ],
+    answer: 0,
+    explanation: 'Obligatoire s’il existe un arrêté municipal, et hors agglomération.',
+  },
+  {
+    id: 'mobilite-11',
+    series: 3,
+    text: 'Quand j’achète une voiture d’occasion, le contrôle technique doit dater de moins de :',
+    choices: ['2 ans', '1 an', '6 mois', '3 mois'],
+    answer: 2,
+    explanation: 'Le contrôle technique doit dater de moins de 6 mois.',
+  },
+  {
+    id: 'mobilite-12',
+    series: 3,
+    text: 'Si j’achète une trottinette électrique, ai-je l’obligation de souscrire une assurance ?',
+    choices: ['Vrai', 'Faux', 'Uniquement hors agglo', 'Uniquement après 18 ans'],
+    answer: 0,
+    explanation: 'Vrai : une assurance responsabilité civile spécifique est obligatoire.',
+  },
+  {
+    id: 'mobilite-13',
+    series: 3,
+    text: 'Dans combien de temps dois-je faire le contrôle technique de ma voiture neuve après l’achat ?',
+    choices: ['2 ans', '4 ans', '6 mois', '1 an'],
+    answer: 1,
+    explanation: 'Le premier contrôle technique d’une voiture neuve a lieu dans les 4 ans.',
+  },
+  {
+    id: 'mobilite-14',
+    series: 3,
+    text: 'Quel dispositif peut être prescrit par le Département pour aider un BRSA à lever ses freins à la mobilité dans son parcours d’insertion ?',
+    choices: ['MaMobilité62', 'Pass Navigo', 'Crit’Air', 'Carte grise gratuite'],
+    answer: 0,
+    explanation: 'MaMobilité62.',
+  },
+  {
+    id: 'mobilite-15',
+    series: 3,
+    text: 'Quel dispositif aide les employeurs du domaine de l’aide à domicile à sécuriser la mobilité de leurs salariés ?',
+    choices: ['MobiliSAD', 'MaMobilité62', 'Un Pas Vers l’Avenir', 'Action Logement'],
+    answer: 0,
+    explanation: 'MobiliSAD.',
+  },
+  {
+    id: 'mobilite-16',
+    series: 3,
+    text: 'Une personne de l’agglomération calaisienne habitant un quartier QPV n’a pas de moyen de transport pour se rendre à son travail. Vers quel dispositif peut-elle être orientée ?',
+    choices: ['Un Pas Vers l’Avenir', 'MobiliSAD', 'Vélib’', 'Le permis à 1 €'],
+    answer: 0,
+    explanation: 'Le dispositif « Un Pas Vers l’Avenir ».',
+  },
+];
