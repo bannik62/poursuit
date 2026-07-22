@@ -1,0 +1,208 @@
+<mxfile host="app.diagrams.net" modified="2026-07-22T13:00:00.000Z" agent="Cursor" version="22.1.0" type="device">
+  <diagram id="prod-connexions" name="Production — connexions">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="Trivial Asso — Architecture des connexions (production)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="800" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="https://game.vitalinfo.site" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=14;fontColor=#666666" vertex="1" parent="1">
+          <mxGeometry x="400" y="55" width="800" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Zone clients -->
+        <mxCell id="zone-clients" value="Clients (navigateur)" style="swimlane;horizontal=0;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=13" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="1520" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="admin" value="&lt;b&gt;Admin&lt;/b&gt;&lt;br&gt;PC formateur&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;/admin/&lt;br&gt;Cookie JWT&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="zone-clients">
+          <mxGeometry x="30" y="50" width="140" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="joueur" value="&lt;b&gt;Joueur&lt;/b&gt;&lt;br&gt;Téléphone&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;/joueur/?token=…&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="zone-clients">
+          <mxGeometry x="220" y="50" width="140" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="plateau" value="&lt;b&gt;Plateau&lt;/b&gt;&lt;br&gt;Projecteur&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;/plateau/?session=…&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="zone-clients">
+          <mxGeometry x="410" y="50" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-clients" value="&lt;b&gt;Protocoles côté client&lt;/b&gt;&lt;br&gt;• REST → /api/* (login, join, start…)&lt;br&gt;• Socket.IO → /socket.io/* (lobby live, dé, réponses)" style="text;html=1;strokeColor=#999999;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="zone-clients">
+          <mxGeometry x="620" y="40" width="860" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Internet -->
+        <mxCell id="internet" value="Internet — HTTPS :443" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="680" y="310" width="240" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- VPS Apache -->
+        <mxCell id="zone-vps" value="VPS OVH — Apache 2.4" style="swimlane;horizontal=0;startSize=30;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=13" vertex="1" parent="1">
+          <mxGeometry x="40" y="450" width="1520" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="apache" value="&lt;b&gt;VirtualHost *:443&lt;/b&gt;&lt;br&gt;game.vitalinfo.site&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;• SSL Let's Encrypt&lt;br&gt;• X-Forwarded-Proto: https&lt;br&gt;• ProxyPass /socket.io/ &lt;b&gt;AVANT&lt;/b&gt; ProxyPass /&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="zone-vps">
+          <mxGeometry x="480" y="45" width="280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="apache-socket" value="/socket.io/&lt;br&gt;HTTP polling +&lt;br&gt;upgrade WebSocket" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="zone-vps">
+          <mxGeometry x="200" y="70" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="apache-rest" value="/admin/ /joueur/&lt;br&gt;/plateau/ /api/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="zone-vps">
+          <mxGeometry x="900" y="70" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="apache-target" value="→ 127.0.0.1:3333&lt;br&gt;(GAME_HTTP_PORT)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=12;fontStyle=1" vertex="1" parent="zone-vps">
+          <mxGeometry x="520" y="175" width="200" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Docker -->
+        <mxCell id="zone-docker" value="Docker Compose (poursuit) — localhost only" style="swimlane;horizontal=0;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13" vertex="1" parent="1">
+          <mxGeometry x="40" y="690" width="1520" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="frontend" value="&lt;b&gt;frontend&lt;/b&gt; (nginx :80)&lt;br&gt;127.0.0.1:3333 → conteneur&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;/admin/ /plateau/ /joueur/ → SPAs Svelte&lt;br&gt;/api/* → proxy backend:3000&lt;br&gt;/socket.io/* → proxy backend:3000&lt;br&gt;Connection: upgrade (map polling/ws)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="zone-docker">
+          <mxGeometry x="350" y="45" width="320" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="backend" value="&lt;b&gt;backend&lt;/b&gt; (Node.js :3000)&lt;br&gt;réseau Docker interne&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Express REST + Socket.IO&lt;br&gt;Sessions en mémoire&lt;br&gt;CORS: FRONTEND_URL + PUBLIC_URL&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="zone-docker">
+          <mxGeometry x="850" y="45" width="280" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="env-note" value=".env.prod&lt;br&gt;PUBLIC_URL, FRONTEND_URL,&lt;br&gt;JWT_SECRET, GAME_HTTP_PORT=3333" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;fontSize=11;align=left;" vertex="1" parent="zone-docker">
+          <mxGeometry x="30" y="50" width="200" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Flow session box -->
+        <mxCell id="flow-box" value="&lt;b&gt;Flux lobby (exemple)&lt;/b&gt;&lt;br&gt;1. Admin POST /api/admin/session → sessionId + QR&lt;br&gt;2. Admin socket session:subscribe → room sessionId&lt;br&gt;3. Tel scan QR → POST /api/player/join → broadcast session:state&lt;br&gt;4. Tel socket player:subscribe → reçoit mises à jour live&lt;br&gt;5. Admin reçoit session:state → compteur X/Y, bouton Lancer" style="text;html=1;strokeColor=#666666;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="940" width="760" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="ports-box" value="&lt;b&gt;Ports&lt;/b&gt;&lt;br&gt;443 → Apache (public)&lt;br&gt;3333 → nginx Docker (localhost VPS)&lt;br&gt;3000 → backend (interne Docker)" style="text;html=1;strokeColor=#666666;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="840" y="940" width="320" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Edges clients -> internet -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" parent="1" source="admin" target="internet">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="joueur" target="internet">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d6b656;" edge="1" parent="1" source="plateau" target="internet">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- internet -> apache -->
+        <mxCell id="e4" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#9673a6;fontStyle=1" edge="1" parent="1" source="internet" target="apache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- apache internal -->
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#b85450;" edge="1" parent="1" source="apache-socket" target="apache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#6c8ebf;" edge="1" parent="1" source="apache-rest" target="apache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- apache -> frontend -->
+        <mxCell id="e7" value="reverse proxy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d79b00;fontStyle=1" edge="1" parent="1" source="apache" target="frontend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- frontend -> backend -->
+        <mxCell id="e8" value="/api + /socket.io" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;fontStyle=1" edge="1" parent="1" source="frontend" target="backend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Socket.IO room annotation -->
+        <mxCell id="room" value="Room Socket.IO = sessionId&lt;br&gt;(admin + joueurs + plateau)" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="940" width="200" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="dev-connexions" name="Dev local — connexions">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="d-title" value="Trivial Asso — Dev local (docker compose)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="700" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="d-pc" value="PC (localhost:8083)&lt;br&gt;Admin + Plateau" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="80" y="120" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="d-phone" value="Téléphone&lt;br&gt;(ngrok ou IP LAN)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="80" y="240" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="d-ngrok" value="ngrok (optionnel)&lt;br&gt;https://xxx.ngrok-free.app" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="320" y="220" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="d-frontend" value="frontend nginx :8083&lt;br&gt;3 SPAs + proxy" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="620" y="160" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="d-backend" value="backend :3004 (debug)&lt;br&gt;Express + Socket.IO" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="920" y="160" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="d-env" value=".env&lt;br&gt;PUBLIC_URL = ngrok si tel&lt;br&gt;FRONTEND_URL = même origine CORS" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="620" y="300" width="260" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="de1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" parent="1" source="d-pc" target="d-frontend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="de2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="d-phone" target="d-ngrok">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="de3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="d-ngrok" target="d-frontend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="de4" value="/api + /socket.io" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#b85450;fontStyle=1" edge="1" parent="1" source="d-frontend" target="d-backend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="socket-events" name="Socket.IO — événements">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="s-title" value="Socket.IO — room par sessionId" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="600" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s-admin" value="Admin&lt;br&gt;session:subscribe" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="120" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s-joueur" value="Joueur&lt;br&gt;player:subscribe" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="240" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s-plateau" value="Plateau&lt;br&gt;session:subscribe" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="360" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s-server" value="Backend Socket.IO&lt;br&gt;io.to(sessionId)" style="rounded=1;fillColor=#f8cecc;strokeColor=#b85450;whiteSpace=wrap;html=1;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="220" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="s-events" value="&lt;b&gt;Événements serveur → clients&lt;/b&gt;&lt;br&gt;session:state — état complet&lt;br&gt;player:joined — nouveau joueur&lt;br&gt;game:start — partie lancée&lt;br&gt;game:dice / game:answer — actions jeu&lt;br&gt;game:over — fin de partie&lt;br&gt;session:reset — session supprimée" style="text;html=1;strokeColor=#666666;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="720" y="120" width="320" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="s-http" value="&lt;b&gt;HTTP déclencheurs&lt;/b&gt;&lt;br&gt;POST /api/player/join → broadcast session:state&lt;br&gt;POST …/start → game:start&lt;br&gt;POST …/reset → session:reset" style="text;html=1;strokeColor=#666666;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="720" y="320" width="320" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="se1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="s-admin" target="s-server">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="s-joueur" target="s-server">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;endArrow=classic;" edge="1" parent="1" source="s-plateau" target="s-server">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se4" value="broadcast" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;dashed=1;endArrow=classic;strokeColor=#9673a6;" edge="1" parent="1" source="s-server" target="s-events">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

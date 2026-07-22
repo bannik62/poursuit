@@ -7,25 +7,33 @@ Jeu multijoueur type Trivial Pursuit (4 thèmes) pour atelier formation.
 
 ## Vue d'ensemble
 
+**Diagramme draw.io (connexions prod, dev, Socket.IO) :** [`doc/connexions.drawio`](./connexions.drawio)  
+Ouvrir avec [diagrams.net](https://app.diagrams.net) ou l’extension Draw.io Integration dans VS Code / Cursor.
+
+Le fichier contient 3 pages :
+
+| Page | Contenu |
+|------|---------|
+| **Production — connexions** | Clients → Apache :443 → Docker nginx :3333 → backend :3000 |
+| **Dev local — connexions** | localhost:8083, ngrok optionnel |
+| **Socket.IO — événements** | `session:subscribe`, `player:subscribe`, broadcasts |
+
+### Chaîne production (résumé)
+
 ```
-                    ┌─────────────────────────────────────┐
-                    │         frontend (nginx :80)         │
-                    │         exposé sur :8083             │
-                    │                                      │
-  Formateur (PC) ──►│  /admin/     → Svelte (dashboard)    │
-  Projecteur   ──►│  /plateau/   → Svelte (lecture seule) │
-  Téléphones   ──►│  /joueur/    → Svelte (jeu mobile)   │
-                    │                                      │
-                    │  /api/       ──proxy──► backend:3000  │
-                    │  /socket.io/ ──proxy──► backend:3000  │
-                    └─────────────────────────────────────┘
-                                      │
-                    ┌─────────────────▼───────────────────┐
-                    │  backend (Node.js + Socket.IO)     │
-                    │  exposé sur :3004 (debug direct)   │
-                    │                                    │
-                    │  Sessions en mémoire (pas de BDD)  │
-                    └────────────────────────────────────┘
+Admin / Téléphones / Projecteur
+        │  HTTPS :443
+        ▼
+Apache (game.vitalinfo.site)
+  ProxyPass /socket.io/  → 127.0.0.1:3333  (AVANT ProxyPass /)
+  ProxyPass /            → 127.0.0.1:3333
+        ▼
+Docker frontend (nginx :80, port hôte 3333)
+  /admin/ /plateau/ /joueur/  → SPAs Svelte
+  /api/*                        → backend:3000
+  /socket.io/*                  → backend:3000
+        ▼
+Docker backend (Node.js + Socket.IO :3000, mémoire)
 ```
 
 En dev avec **ngrok** (téléphone) :
@@ -45,7 +53,8 @@ trivial-asso/
 ├── .env.example            # modèle
 ├── docker-compose.yml      # backend + frontend [+ ngrok]
 ├── doc/
-│   └── architecture.md     # ce fichier
+│   ├── architecture.md     # ce fichier
+│   └── connexions.drawio   # schéma draw.io (prod, dev, Socket.IO)
 ├── scripts/
 │   ├── ngrok-dev.sh        # dev téléphone via ngrok
 │   └── setup-phone-access.ps1  # alternative IP locale (WSL)
