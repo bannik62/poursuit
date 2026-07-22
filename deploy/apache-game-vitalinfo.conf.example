@@ -1,5 +1,8 @@
 # Apache — Trivial Asso / Poursuit
 # https://game.vitalinfo.site → 127.0.0.1:3333 (GAME_HTTP_PORT)
+#
+# sudo a2enmod proxy proxy_http proxy_wstunnel rewrite ssl headers
+# sudo a2ensite game-vitalinfo.conf && sudo systemctl reload apache2
 
 <VirtualHost *:80>
     ServerName game.vitalinfo.site
@@ -17,16 +20,16 @@
     RequestHeader set X-Forwarded-Proto "https"
     RequestHeader set X-Forwarded-For "%{REMOTE_ADDR}s"
 
+    # Socket.IO (HTTP polling + WebSocket) — AVANT le ProxyPass /
+    ProxyPass /socket.io/ http://127.0.0.1:3333/socket.io/
+    ProxyPassReverse /socket.io/ http://127.0.0.1:3333/socket.io/
+
     ProxyPass / http://127.0.0.1:3333/
     ProxyPassReverse / http://127.0.0.1:3333/
 
     RewriteEngine On
-    RewriteCond %{HTTP:Upgrade} websocket [NC]
-    RewriteCond %{HTTP:Connection} upgrade [NC]
-    RewriteRule /(.*) ws://127.0.0.1:3333/$1 [P,L]
-
-    ProxyPass /socket.io/ ws://127.0.0.1:3333/socket.io/
-    ProxyPassReverse /socket.io/ ws://127.0.0.1:3333/socket.io/
+    RewriteCond %{HTTP:Upgrade} =websocket [NC]
+    RewriteRule /socket.io/(.*) ws://127.0.0.1:3333/socket.io/$1 [P,L]
 
     ErrorLog ${APACHE_LOG_DIR}/game-vitalinfo-error.log
     CustomLog ${APACHE_LOG_DIR}/game-vitalinfo-access.log combined

@@ -16,14 +16,26 @@ if (process.env.NODE_ENV === 'production') {
 }
 const httpServer = createServer(app);
 
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:8083')
-  .split(',')
-  .map((o) => o.trim())
+function normalizeOrigin(value) {
+  if (!value) return null;
+  try {
+    const url = new URL(value.trim());
+    return `${url.protocol}//${url.host}`;
+  } catch {
+    return value.trim().replace(/\/$/, '');
+  }
+}
+
+const allowedOrigins = [
+  ...(process.env.FRONTEND_URL || 'http://localhost:8083').split(','),
+  process.env.PUBLIC_URL,
+]
+  .map(normalizeOrigin)
   .filter(Boolean);
 
 function isAllowedOrigin(origin) {
   if (!origin) return true;
-  if (allowedOrigins.includes(origin)) return true;
+  if (allowedOrigins.includes(normalizeOrigin(origin))) return true;
   if (process.env.NODE_ENV === 'development') {
     try {
       const url = new URL(origin);

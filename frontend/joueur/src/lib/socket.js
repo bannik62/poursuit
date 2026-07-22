@@ -1,7 +1,13 @@
 import { io } from 'socket.io-client';
 
+const SOCKET_OPTS = {
+  path: '/socket.io',
+  transports: ['polling', 'websocket'],
+  reconnection: true,
+};
+
 export function subscribePlayer(sessionId, token, handlers) {
-  const s = io({ path: '/socket.io' });
+  const s = io(SOCKET_OPTS);
 
   const onState = (state) => handlers.onState?.(state);
   const onStart = (state) => handlers.onStart?.(state);
