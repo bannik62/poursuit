@@ -167,7 +167,10 @@ trivial-asso/
 | Problème | Piste |
 |----------|--------|
 | Admin bloqué « en attente », téléphones OK | Socket admin : recréer session ; vérifier Apache `/socket.io/` avant `ProxyPass /` |
-| 403 sur `/socket.io` | `FRONTEND_URL` = origine exacte (https, sans slash final) |
+| **403 sur `/socket.io?…&sid=…`** (console nav) | **Apache** bloque avant Docker (`Server: Apache`). Souvent ModSecurity / mod_evasive après plusieurs connexions (admin + téléphones + plateau). Voir `deploy/apache-game-vitalinfo.conf.example` |
+| 403 sur tout le site (`/admin/`, `/api/health`) | Vhost HTTPS sans proxy (certbot a écrasé la config) → remettre les `ProxyPass`, `sudo systemctl reload apache2` |
+| 403 CORS backend (rare, `Server: nginx`) | `FRONTEND_URL` = origine exacte (`https://game.vitalinfo.site`, sans slash final) |
+| 401 sur `/api/admin/me` | Normal tant que tu n’es pas connecté admin |
 | QR « site inaccessible » | `PUBLIC_URL` = localhost → utiliser ngrok ou URL prod |
 | QR anciens après changement d’URL | Recréer une **nouvelle** session admin |
 | `docker compose exec` affiche des WARN | Ajouter `--env-file .env.prod` |

@@ -34,7 +34,7 @@
   import { playStep } from '../lib/sfx.js';
   import { DICE_HOLD_MS, STEP_MS, POST_MOVE_BEAT_MS } from '@trivial-asso/game';
 
-  let { session, onMoveAnimDone } = $props();
+  let { session, onMoveAnimDone, soundEnabled = false } = $props();
 
   const players = $derived(session?.players ?? []);
   const current = $derived(session?.currentPlayer ?? 0);
@@ -90,7 +90,7 @@
         if (token !== animToken) return;
         await new Promise((resolve) => setTimeout(resolve, STEP_MS));
         displayPositions = { ...displayPositions, [roll.slot]: pos };
-        playStep();
+        if (soundEnabled) playStep();
       }
       if (token !== animToken) return;
       displayPositions = { ...displayPositions, [roll.slot]: roll.to };

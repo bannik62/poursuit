@@ -21,6 +21,12 @@ export function unlockAudio() {
   src.start(0);
 }
 
+/** Bip de confirmation au premier déblocage audio. */
+export function playUnlockConfirm() {
+  tone(523.25, 0.1, { gain: 0.12 });
+  tone(659.25, 0.14, { gain: 0.12, delay: 0.08 });
+}
+
 function tone(freq, duration, { type = 'sine', gain = 0.12, delay = 0, slideTo } = {}) {
   const c = getCtx();
   if (!c) return;

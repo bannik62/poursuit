@@ -10,7 +10,8 @@
   function pawnColor(p) {
     if (p.color != null) return playerColorHex(p.color);
     return PAWN_COLORS[p.slot % PAWN_COLORS.length];
-  }</script>
+  }
+</script>
 
 <aside class="hud">
   <div class="turn">
@@ -49,6 +50,8 @@
     border-radius: 16px;
     padding: 1.25rem 1.5rem;
     min-width: 280px;
+    max-width: 320px;
+    flex-shrink: 0;
     backdrop-filter: blur(10px);
     box-shadow: 0 12px 32px rgb(0 0 0 / 30%);
   }

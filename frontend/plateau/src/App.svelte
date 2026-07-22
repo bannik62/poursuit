@@ -3,6 +3,7 @@
   import { subscribeSession } from './lib/socket.js';
   import Board from './components/Board.svelte';
   import GameHud from './components/GameHud.svelte';
+  import TurnHistory from './components/TurnHistory.svelte';
   import LobbyPlateau from './components/LobbyPlateau.svelte';
   import DiceOverlay from './components/DiceOverlay.svelte';
   import CaseBanner from './components/CaseBanner.svelte';
@@ -13,6 +14,7 @@
   import { DICE_HOLD_MS, inferRollCue } from '@trivial-asso/game';
   import {
     unlockAudio,
+    playUnlockConfirm,
     playDiceReveal,
     playAnswerResult,
     playVictory,
@@ -35,7 +37,12 @@
   let caseBanner = $state(null);
   /** Résultat affiché sur le projecteur (si option admin) */
   let answerDisplay = $state(null);
-  let audioReady = $state(false);
+  /** Web Audio débloqué (politique navigateur — une fois). */
+  let audioUnlocked = $state(false);
+  /** Mute / unmute des effets sonores. */
+  let soundEnabled = $state(true);
+
+  const canPlaySound = () => audioUnlocked && soundEnabled;
   /** Empêche les SFX / HUD de case tant que le pion n’a pas fini */
   let moveAnimPending = $state(false);
 
@@ -48,12 +55,66 @@
   let victoryPlayed = false;
   let lastHandledRollAt = 0;
   let hydrated = false;
+  /** @type {{ at: number | string, name: string, dice: number | string, action: string }[]} */
+  let turnHistory = $state([]);
+
+  const TURN_ACTION_LABELS = {
+    rejouez: 'À rejouer',
+    bonus: 'À rejouer',
+    pass: 'À passer',
+    challenge: 'Défi',
+    finish: 'Arrivée au centre',
+    exact: 'Nombre exact',
+    none: 'Avance',
+  };
+
+  const ANSWER_ACTION_LABELS = {
+    correct: 'Bonne réponse',
+    wrong: 'Mauvaise réponse',
+  };
 
   const ANSWER_DISPLAY_MS = 5500;
 
-  function enableAudio() {
-    unlockAudio();
-    audioReady = true;
+  function appendHistory(entry) {
+    turnHistory = [...turnHistory, entry].slice(-40);
+  }
+
+  function recordTurn(state, roll, cue) {
+    if (!roll?.at || cue === 'question' || cue === 'challenge') return;
+    if (turnHistory.some((e) => e.at === roll.at)) return;
+    const name = state.players?.find((p) => p.slot === roll.slot)?.name ?? `J${roll.slot + 1}`;
+    appendHistory({
+      at: roll.at,
+      name,
+      dice: roll.value,
+      action: TURN_ACTION_LABELS[cue] ?? cue,
+    });
+  }
+
+  function recordAnswer(state, answer) {
+    if (!answer) return;
+    const rollAt = state.lastRoll?.at ?? '';
+    const key = `a-${answer.slot}-${answer.chosenIndex}-${answer.correct}-${rollAt}`;
+    if (turnHistory.some((e) => e.at === key)) return;
+    const name = state.players?.find((p) => p.slot === answer.slot)?.name ?? `J${answer.slot + 1}`;
+    const dice = state.lastRoll?.slot === answer.slot ? state.lastRoll.value : '—';
+    appendHistory({
+      at: key,
+      name,
+      dice,
+      action: answer.correct ? ANSWER_ACTION_LABELS.correct : ANSWER_ACTION_LABELS.wrong,
+    });
+  }
+  function toggleSound(e) {
+    e.stopPropagation();
+    if (!audioUnlocked) {
+      unlockAudio();
+      audioUnlocked = true;
+      soundEnabled = true;
+      playUnlockConfirm();
+      return;
+    }
+    soundEnabled = !soundEnabled;
   }
 
   function showDice(state) {
@@ -67,7 +128,7 @@
     if (answerTimer) clearTimeout(answerTimer);
     const name = state.players?.find((p) => p.slot === roll.slot)?.name ?? '';
     diceDisplay = { ...roll, name };
-    if (audioReady) playDiceReveal();
+    if (canPlaySound()) playDiceReveal();
     if (diceTimer) clearTimeout(diceTimer);
     // Overlay disparaît juste avant / quand le pion démarre
     diceTimer = setTimeout(() => {
@@ -92,7 +153,7 @@
     const q = state.currentQuestion;
     if (q?.id && q.id !== lastQuestionId) {
       lastQuestionId = q.id;
-      if (audioReady) playQuestion();
+      if (canPlaySound()) playQuestion();
     }
 
     const a = state.lastAnswer;
@@ -100,14 +161,15 @@
       const key = `${a.slot}-${a.chosenIndex}-${a.correct}-${a.series}-${state.lastRoll?.at ?? ''}`;
       if (key !== lastAnswerKey) {
         lastAnswerKey = key;
-        if (audioReady) playAnswerResult(a);
+        if (canPlaySound()) playAnswerResult(a);
         showAnswerOverlay(state, a);
+        recordAnswer(state, a);
       }
     }
 
     if (state.status === 'finished' && !victoryPlayed) {
       victoryPlayed = true;
-      if (audioReady) playVictory();
+      if (canPlaySound()) playVictory();
     }
     if (state.status !== 'finished') victoryPlayed = false;
   }
@@ -135,7 +197,7 @@
       cue: roll.cue ?? state.lastRoll?.cue,
     });
 
-    if (audioReady) {
+    if (canPlaySound()) {
       if (cue === 'rejouez' || cue === 'bonus') playRejouez();
       else if (cue === 'pass') playPass();
     }
@@ -144,6 +206,7 @@
     if (!(cue === 'question' && state.showQuestionOnPlateau)) {
       showCaseBanner(cue);
     }
+    recordTurn(state, roll, cue);
     applyPresentedState(state);
   }
 
@@ -200,6 +263,7 @@
       onStart: (state) => {
         gameStarted = true;
         gameOver = false;
+        turnHistory = [];
         ingestState(state);
       },
       onGameOver: (payload) => {
@@ -209,7 +273,7 @@
         const w = state?.players?.find((p) => p.slot === payload.winner);
         winnerName = w?.name ?? '…';
         if (!moveAnimPending) applyPresentedState(state);
-        if (audioReady && !victoryPlayed) {
+        if (canPlaySound() && !victoryPlayed) {
           victoryPlayed = true;
           playVictory();
         }
@@ -221,6 +285,7 @@
         moveAnimPending = false;
         caseBanner = null;
         answerDisplay = null;
+        turnHistory = [];
         error = 'Session réinitialisée par le formateur.';
       },
       onDice: (roll) => {
@@ -232,7 +297,7 @@
 
 <AuroraBackground />
 
-<main class="screen" class:playing={gameStarted} onclick={enableAudio}>
+<main class="screen" class:playing={gameStarted}>
   <header class="brand">
     <h1>Trivial Asso</h1>
     {#if gameStarted && session}
@@ -240,9 +305,23 @@
     {/if}
   </header>
 
-  {#if gameStarted && !audioReady}
-    <button type="button" class="audio-btn" onclick={enableAudio}>
-      Activer le son
+  {#if session && !error}
+    <button
+      type="button"
+      class="audio-btn"
+      class:muted={audioUnlocked && !soundEnabled}
+      onclick={toggleSound}
+      aria-pressed={audioUnlocked && soundEnabled}
+      aria-label={!audioUnlocked ? 'Activer le son' : soundEnabled ? 'Couper le son' : 'Activer le son'}
+      title={!audioUnlocked ? 'Activer le son' : soundEnabled ? 'Couper le son' : 'Activer le son'}
+    >
+      {#if !audioUnlocked}
+        Activer le son
+      {:else if soundEnabled}
+        🔊
+      {:else}
+        🔇
+      {/if}
     </button>
   {/if}
 
@@ -274,8 +353,11 @@
       <QuestionOverlay question={(presentedSession ?? session).currentQuestion} />
     {/if}
     <div class="game">
-      <Board {session} {onMoveAnimDone} />
-      <GameHud session={presentedSession ?? session} />
+      <Board {session} {onMoveAnimDone} soundEnabled={canPlaySound()} />
+      <div class="sidebar">
+        <GameHud session={presentedSession ?? session} />
+        <TurnHistory entries={turnHistory} />
+      </div>
     </div>
 
   {:else}
@@ -335,6 +417,15 @@
     flex-wrap: wrap;
   }
 
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 280px;
+    max-width: 320px;
+    max-height: calc(100dvh - 8rem);
+  }
+
   .loading {
     font-size: 1.5rem;
     color: var(--muted);
@@ -371,17 +462,32 @@
     top: 1rem;
     right: 1rem;
     z-index: 30;
+    min-width: 2.75rem;
     padding: 0.6rem 1.1rem;
     border: none;
     border-radius: 999px;
     background: var(--grad-cta);
     color: #fff;
     font-weight: 800;
+    font-size: 1.1rem;
+    line-height: 1;
     cursor: pointer;
     box-shadow: 0 4px 20px rgb(124 58 237 / 35%);
   }
 
+  .audio-btn.muted {
+    background: color-mix(in srgb, var(--surface) 90%, var(--bg));
+    color: var(--muted);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 25%);
+    border: 1px solid var(--border);
+  }
+
   .audio-btn:hover {
     filter: brightness(1.08);
+  }
+
+  .audio-btn.muted:hover {
+    filter: none;
+    color: var(--text);
   }
 </style>

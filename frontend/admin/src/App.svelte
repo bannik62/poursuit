@@ -60,6 +60,7 @@
     session = null;
     qrCodes = [];
     gameStarted = false;
+    gameOver = false;
     phase = 'login';
   }
 
@@ -85,6 +86,7 @@
       plateauUrl = `${data.publicUrl || window.location.origin}/plateau/?session=${data.id}`;
       await generateQrCodes(data.playerTokens);
       gameStarted = false;
+      gameOver = false;
       phase = 'session';
     } catch (err) {
       error = err.message;
@@ -118,6 +120,7 @@
       session = null;
       qrCodes = [];
       gameStarted = false;
+      gameOver = false;
       phase = 'dashboard';
     } catch (err) {
       error = err.message;
@@ -187,6 +190,7 @@
         session = null;
         qrCodes = [];
         gameStarted = false;
+        gameOver = false;
         phase = 'dashboard';
       },
     });
@@ -252,7 +256,7 @@
     <label class="switch-row">
       <span class="switch-text">
         <strong>Afficher les questions sur le projecteur</strong>
-        <small>Popup lecture seule sur le plateau (réponse toujours sur le téléphone)</small>
+        <small>Afficher la lecture des questions sur le projecteur (réponse toujours sur le téléphone)</small>
       </span>
       <input
         type="checkbox"
@@ -265,7 +269,7 @@
     <label class="switch-row">
       <span class="switch-text">
         <strong>Finir sur le nombre exact</strong>
-        <small>Si désactivé, un jet trop grand atteint quand même le centre</small>
+        <small>Si désactivé, un jet de dé trop grand atteint quand même le centre pour finir la partie<br /> (sinon il faut obtenir le nombre exact)</small>
       </span>
       <input
         type="checkbox"
@@ -278,7 +282,9 @@
     <label class="switch-row">
       <span class="switch-text">
         <strong>Partie rapide</strong>
-        <small>Pas de relance sur camembert déjà gagné — le dé favorise les couleurs manquantes</small>
+        <small>Pas de relance de dé sur une couleur de camembert déjà gagné <br />
+           — le dé favorise les couleurs manquantes</small>
+           si activé, la partie est plus rapide
       </span>
       <input
         type="checkbox"
