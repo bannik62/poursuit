@@ -11,6 +11,9 @@ import { authJwt } from './middleware/authJwt.js';
 import { registerGameHandler } from './socket/gameHandler.js';
 
 const app = express();
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
 const httpServer = createServer(app);
 
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:8083')

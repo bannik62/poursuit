@@ -1,0 +1,64 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.PURSUIT_DEPLOY_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Ensure deploy directory
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" -o StrictHostKeyChecking=accept-new \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "mkdir -p '${{ secrets.DEPLOY_PATH }}' && \
+             sudo chown -R \"\$(whoami):www-data\" '${{ secrets.DEPLOY_PATH }}' 2>/dev/null || true"
+
+      - name: Write .env.prod on VPS
+        run: |
+          {
+            printf '%s\n' "NODE_ENV=production"
+            printf '%s\n' "PORT=3000"
+            printf '%s\n' "JWT_SECRET=${{ secrets.JWT_SECRET }}"
+            printf '%s\n' "ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }}"
+            printf '%s\n' "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}"
+            printf '%s\n' "PUBLIC_URL=${{ secrets.PUBLIC_URL }}"
+            printf '%s\n' "FRONTEND_URL=${{ secrets.FRONTEND_URL }}"
+            printf '%s\n' "MIN_PLAYERS=2"
+            printf '%s\n' "MAX_PLAYERS=6"
+            printf '%s\n' "GAME_HTTP_PORT=${{ secrets.GAME_HTTP_PORT }}"
+          } | ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" -o StrictHostKeyChecking=accept-new \
+              "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+              "umask 077; cat > '${{ secrets.DEPLOY_PATH }}/.env.prod' && chmod 600 '${{ secrets.DEPLOY_PATH }}/.env.prod'"
+
+      - name: Rsync to VPS
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=accept-new" \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude 'dist' \
+            --exclude '.env' \
+            --exclude '.env.*' \
+            --exclude '!.env.prod.example' \
+            ./ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+
+      - name: Docker Compose (prod)
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" -o StrictHostKeyChecking=accept-new \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "cd '${{ secrets.DEPLOY_PATH }}' && \
+             sudo docker compose -f docker-compose.prod.yml --env-file .env.prod build && \
+             sudo docker compose -f docker-compose.prod.yml --env-file .env.prod up -d"

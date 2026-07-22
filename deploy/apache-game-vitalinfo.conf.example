@@ -1,0 +1,33 @@
+# Apache — Trivial Asso / Poursuit
+# https://game.vitalinfo.site → 127.0.0.1:3333 (GAME_HTTP_PORT)
+
+<VirtualHost *:80>
+    ServerName game.vitalinfo.site
+    Redirect permanent / https://game.vitalinfo.site/
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName game.vitalinfo.site
+
+    SSLEngine on
+    # SSLCertificateFile /etc/letsencrypt/live/game.vitalinfo.site/fullchain.pem
+    # SSLCertificateKeyFile /etc/letsencrypt/live/game.vitalinfo.site/privkey.pem
+
+    ProxyPreserveHost On
+    RequestHeader set X-Forwarded-Proto "https"
+    RequestHeader set X-Forwarded-For "%{REMOTE_ADDR}s"
+
+    ProxyPass / http://127.0.0.1:3333/
+    ProxyPassReverse / http://127.0.0.1:3333/
+
+    RewriteEngine On
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule /(.*) ws://127.0.0.1:3333/$1 [P,L]
+
+    ProxyPass /socket.io/ ws://127.0.0.1:3333/socket.io/
+    ProxyPassReverse /socket.io/ ws://127.0.0.1:3333/socket.io/
+
+    ErrorLog ${APACHE_LOG_DIR}/game-vitalinfo-error.log
+    CustomLog ${APACHE_LOG_DIR}/game-vitalinfo-access.log combined
+</VirtualHost>
