@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import { pickRollValue } from './dice.js';
-import { pickQuestionForPlayer, questionForClient, themeInfo } from './questions.js';
+import { pickQuestionForParty, questionForClient, themeInfo, questionIdsForSeries } from './questions.js';
 import {
   buildPlayerPath,
   getSpaceInfo,
@@ -11,7 +11,7 @@ import {
 } from '../../shared/game/index.js';
 
 const MIN_PLAYERS = Number(process.env.MIN_PLAYERS) || 2;
-const MAX_PLAYERS = Number(process.env.MAX_PLAYERS) || 6;
+const MAX_PLAYERS = Number(process.env.MAX_PLAYERS) || 4;
 const MAX_BONUS_ROLLS = 2;
 
 function landingCue(result) {
@@ -47,7 +47,6 @@ export class Session {
       token: randomBytes(8).toString('hex'),
       position: 0,
       wedges: [false, false, false, false],
-      askedQuestionIds: [],
       finished: false,
       finishRank: null,
     }));
@@ -62,6 +61,8 @@ export class Session {
     this.fastGame = false;
     /** Défi en cours : qui a lancé le défi */
     this._challengeFrom = null;
+    /** Questions déjà posées dans cette partie (tous joueurs) */
+    this.askedQuestionIds = [];
     this.createdAt = Date.now();
   }
 
@@ -76,9 +77,9 @@ export class Session {
     this.lastAnswer = null;
     this.extraRolls = 0;
     this._challengeFrom = null;
+    this.askedQuestionIds = [];
     for (const player of this.players) {
       player.position = startingPosition(player.slot);
-      player.askedQuestionIds = [];
       player.finished = false;
       player.finishRank = null;
     }
@@ -157,15 +158,19 @@ export class Session {
   }
 
   startQuestion(slot, theme, { victory = false, challenge = false } = {}) {
-    const player = this.players[slot];
-    const q = pickQuestionForPlayer(theme, player.askedQuestionIds);
+    const { question: q, recycled } = pickQuestionForParty(theme, this.askedQuestionIds);
 
     if (!q || q.series !== theme) {
       this.endTurn();
       return false;
     }
 
-    player.askedQuestionIds.push(q.id);
+    if (recycled) {
+      const themeIds = new Set(questionIdsForSeries(theme));
+      this.askedQuestionIds = this.askedQuestionIds.filter((id) => !themeIds.has(id));
+    }
+
+    this.askedQuestionIds.push(q.id);
     this._questionTheme = theme;
     this._pendingAnswer = q;
     this._isVictoryQuestion = victory;
@@ -212,6 +217,14 @@ export class Session {
     if (space.type === 'rejouez') {
       this.phase = 'roll';
       return { ended: false, rejouez: true };
+    }
+
+    // Chemin vers le centre : question à chaque case couleur, même si tous les camemberts
+    if (space.type === 'color' && space.onSpoke) {
+      if (!this.startQuestion(slot, space.theme)) {
+        return { ended: true, noQuestion: true };
+      }
+      return { ended: false, question: true };
     }
 
     if (space.type === 'hq' || space.type === 'color') {
@@ -509,7 +522,7 @@ export class Session {
       requireExactCenterRoll: this.requireExactCenterRoll,
       fastGame: this.fastGame,
       challengeFrom: this._challengeFrom,
-      players: this.players.map(({ token, askedQuestionIds, ...rest }) => rest),
+      players: this.players.map(({ token, ...rest }) => rest),
     };
   }
 

@@ -1,0 +1,20 @@
+/* Palette alignée sur HabiTracks — frontend/src/styles/theme.css */
+
+:root {
+  --bg: #07071a;
+  --surface: #0e0e2a;
+  --input-bg: #07071a;
+  --border: #1e1b4b;
+  --border-btn: #2d2b5e;
+  --text: #f1f5f9;
+  --muted: #b4c0d0;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --gold: #f59e0b;
+  --green: #10b981;
+  --red: #ef4444;
+  --red-light: #f87171;
+  --cyan: #06b6d4;
+  --grad-cta: linear-gradient(135deg, #7c3aed, #f59e0b);
+  --grad-title: linear-gradient(90deg, #c4b5fd, #f59e0b);
+}

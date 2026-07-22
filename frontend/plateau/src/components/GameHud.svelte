@@ -44,17 +44,19 @@
 
 <style>
   .hud {
-    background: rgb(0 0 0 / 35%);
+    background: color-mix(in srgb, var(--surface) 85%, transparent);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 1.25rem 1.5rem;
     min-width: 280px;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 30%);
   }
 
   .turn {
     margin-bottom: 1rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid rgb(255 255 255 / 15%);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
   }
 
   .label {
@@ -62,13 +64,14 @@
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    opacity: 0.65;
+    color: var(--muted);
     margin-bottom: 0.25rem;
   }
 
   .name {
     font-size: 2rem;
     font-weight: 800;
+    color: var(--gold);
   }
 
   .scores {
@@ -86,12 +89,14 @@
     gap: 0.65rem;
     padding: 0.5rem 0.65rem;
     border-radius: 10px;
-    background: rgb(255 255 255 / 6%);
+    background: color-mix(in srgb, var(--bg) 45%, transparent);
+    border: 1px solid transparent;
   }
 
   li.active {
-    background: rgb(255 255 255 / 14%);
-    outline: 2px solid rgb(255 255 255 / 35%);
+    background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    outline: none;
   }
 
   .pawn-dot {

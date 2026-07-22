@@ -1,16 +1,36 @@
+@import './styles/theme.css';
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+html {
+  font-size: clamp(15px, 1.5vw + 12px, 17px);
+}
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #f4f6f8;
-  color: #1a1a2e;
+  font-family: 'Exo 2', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+#app {
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 button {
   cursor: pointer;
+  font-family: inherit;
+}
+
+input,
+select,
+button {
+  font-family: inherit;
 }

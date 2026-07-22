@@ -34,10 +34,14 @@
     min-width: min(90vw, 380px);
     padding: 1.25rem 1.75rem;
     border-radius: 18px;
-    background: linear-gradient(145deg, #1a1a2e, #2c3e50);
-    color: #fff;
-    box-shadow: 0 12px 40px rgb(0 0 0 / 45%);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    border: 1px solid var(--border);
+    color: var(--text);
+    box-shadow:
+      0 0 0 1px rgb(124 58 237 / 12%),
+      0 12px 40px rgb(0 0 0 / 45%);
     text-align: center;
+    backdrop-filter: blur(10px);
   }
 
   h2 {
@@ -46,7 +50,7 @@
     font-weight: 900;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: #f1c40f;
+    color: var(--gold);
   }
 
   ol {
@@ -69,7 +73,7 @@
 
   li.first {
     font-size: 1.45rem;
-    color: #f1c40f;
+    color: var(--gold);
   }
 
   .medal {

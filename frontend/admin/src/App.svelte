@@ -3,6 +3,7 @@
   import QRCode from 'qrcode';
   import { api } from './lib/api.js';
   import { subscribeSession } from './lib/socket.js';
+  import AuroraBackground from './components/effects/AuroraBackground.svelte';
 
   let phase = $state('loading');
   let error = $state('');
@@ -192,16 +193,19 @@
   });
 </script>
 
+<AuroraBackground />
+
+<div class="shell">
 <main class="page">
   {#if phase === 'loading'}
-    <p>Chargement…</p>
+    <p class="loading">Chargement…</p>
 
   {:else if phase === 'login'}
-    <h1>Admin — Trivial Asso</h1>
+    <h1 class="title">Admin — Trivial Asso</h1>
     <form class="form" onsubmit={login}>
-      <input type="text" placeholder="Identifiant" bind:value={username} required />
-      <input type="password" placeholder="Mot de passe" bind:value={password} required />
-      <button type="submit">Connexion</button>
+      <input type="text" placeholder="Identifiant" bind:value={username} required autocomplete="username" />
+      <input type="password" placeholder="Mot de passe" bind:value={password} required autocomplete="current-password" />
+      <button type="submit" class="btn-primary">Connexion</button>
     </form>
 
   {:else if phase === 'dashboard'}
@@ -215,17 +219,17 @@
     {#if publicUrl}
       <p class="url-hint">URL publique QR : <code>{publicUrl}</code></p>
     {/if}
-    <p>Bonjour {admin?.username}</p>
+    <p class="greeting">Bonjour {admin?.username}</p>
     <div class="form">
       <label>
         Nombre de joueurs
         <select bind:value={playerCount}>
-          {#each [2, 3, 4, 5, 6] as n}
+          {#each [2, 3, 4] as n}
             <option value={n}>{n}</option>
           {/each}
         </select>
       </label>
-      <button onclick={createSession}>Créer une session</button>
+      <button class="btn-primary" onclick={createSession}>Créer une session</button>
     </div>
 
   {:else if phase === 'session' && session}
@@ -331,7 +335,7 @@
       </button>
     {:else}
       <button
-        class="start"
+        class="start btn-primary"
         disabled={!session.allConnected}
         onclick={startGame}
       >
@@ -344,15 +348,48 @@
     <p class="error">{error}</p>
   {/if}
 </main>
+</div>
 
 <style>
+  .shell {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 1.5rem clamp(1rem, 4vw, 2.5rem) 2.5rem;
+  }
+
   .page {
     max-width: 56rem;
-    margin: 2rem auto;
-    padding: 1.5rem;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgb(0 0 0 / 8%);
+    margin: 0 auto;
+    padding: 1.75rem clamp(1.25rem, 3vw, 2rem);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow:
+      0 0 0 1px rgb(124 58 237 / 8%),
+      0 24px 48px rgb(0 0 0 / 35%);
+    backdrop-filter: blur(8px);
+  }
+
+  .title {
+    margin: 0 0 1.25rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    background: var(--grad-title);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .loading {
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  .greeting {
+    color: var(--muted);
+    margin: 0 0 1.25rem;
   }
 
   .header {
@@ -360,54 +397,99 @@
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
+    margin-bottom: 0.5rem;
   }
 
   h1 {
     margin: 0 0 1rem;
     font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
   }
 
   .form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    max-width: 20rem;
+    max-width: 22rem;
+  }
+
+  .form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    color: var(--muted);
+    font-size: 0.9rem;
   }
 
   input,
-  select,
-  button {
+  select {
     padding: 0.75rem 1rem;
     font-size: 1rem;
-    border-radius: 8px;
-    border: 1px solid #ddd;
+    border-radius: 10px;
+    border: 1px solid var(--border-btn);
+    background: var(--input-bg);
+    color: var(--text);
   }
 
-  button {
-    background: #3498db;
-    color: white;
+  input::placeholder {
+    color: color-mix(in srgb, var(--muted) 70%, transparent);
+  }
+
+  input:focus,
+  select:focus {
+    outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    outline-offset: 2px;
+    border-color: var(--accent);
+  }
+
+  select option {
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .btn-primary,
+  button.start {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    border-radius: 10px;
     border: none;
+    background: var(--grad-cta);
+    color: #fff;
     font-weight: 600;
-    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.15s ease;
+  }
+
+  .btn-primary:hover:not(:disabled),
+  button.start:hover:not(:disabled) {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
   }
 
   button:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
+    filter: grayscale(0.3);
   }
 
   .link {
     background: none;
-    color: #666;
+    color: var(--muted);
     border: none;
     text-decoration: underline;
     padding: 0;
+    font-size: 0.95rem;
+  }
+
+  .link:hover {
+    color: var(--cyan);
   }
 
   .counter {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #2c3e50;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin: 0.5rem 0 1rem;
   }
 
   .switch-row {
@@ -417,9 +499,9 @@
     gap: 1rem;
     margin: 1rem 0 0.5rem;
     padding: 1rem 1.15rem;
-    background: #f8f9fa;
+    background: color-mix(in srgb, var(--bg) 65%, var(--surface));
     border-radius: 12px;
-    border: 1px solid #e8ecf0;
+    border: 1px solid var(--border);
     cursor: pointer;
   }
 
@@ -430,12 +512,12 @@
   }
 
   .switch-text strong {
-    color: #1a1a2e;
+    color: var(--text);
     font-size: 0.95rem;
   }
 
   .switch-text small {
-    color: #6b7280;
+    color: var(--muted);
     font-size: 0.85rem;
     line-height: 1.35;
   }
@@ -443,7 +525,7 @@
   .switch {
     width: 2.75rem;
     height: 1.5rem;
-    accent-color: #3498db;
+    accent-color: var(--accent);
     cursor: pointer;
     flex-shrink: 0;
   }
@@ -463,13 +545,14 @@
   .qr-card {
     text-align: center;
     padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 10px;
+    background: color-mix(in srgb, var(--bg) 50%, var(--surface));
+    border: 1px solid var(--border);
+    border-radius: 12px;
   }
 
   .qr-card.used {
-    background: #e9ecef;
-    border: 1px solid #ced4da;
+    background: color-mix(in srgb, var(--bg) 75%, var(--surface));
+    border-color: var(--border-btn);
   }
 
   .qr-card img.greyed {
@@ -478,7 +561,7 @@
   }
 
   .taken {
-    color: #27ae60;
+    color: var(--green);
     font-weight: 600;
   }
 
@@ -486,7 +569,7 @@
     margin: 0.5rem 0 0;
     font-size: 0.85rem;
     font-weight: 700;
-    color: #6c757d;
+    color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -495,13 +578,14 @@
     width: 100%;
     max-width: 200px;
     height: auto;
+    border-radius: 8px;
   }
 
   .qr-card small {
     display: block;
     margin-top: 0.5rem;
     font-size: 0.7rem;
-    color: #666;
+    color: var(--muted);
     word-break: break-all;
   }
 
@@ -512,17 +596,18 @@
   }
 
   .slots li {
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #eee;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
   }
 
   .slots li.filled {
-    color: #27ae60;
+    color: var(--green);
     font-weight: 600;
   }
 
   .slots li.offline {
-    color: #c0392b;
+    color: var(--red-light);
   }
 
   .offline-tag {
@@ -530,17 +615,18 @@
     font-style: normal;
     font-size: 0.85rem;
     font-weight: 600;
-    color: #c0392b;
+    color: var(--red-light);
   }
 
   .winner {
     margin: 1rem 0;
-    padding: 1rem;
-    background: #fff9e6;
-    border: 2px solid #c9a227;
+    padding: 1rem 1.25rem;
+    background: color-mix(in srgb, var(--gold) 15%, var(--surface));
+    border: 2px solid color-mix(in srgb, var(--gold) 45%, transparent);
     border-radius: 12px;
     font-size: 1.25rem;
     font-weight: 800;
+    color: var(--gold);
   }
 
   .start {
@@ -550,22 +636,26 @@
   }
 
   .started {
-    color: #27ae60;
+    color: var(--green);
     font-weight: 600;
     font-size: 1.1rem;
   }
 
   .error {
-    color: #e74c3c;
+    color: var(--red-light);
     margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: color-mix(in srgb, var(--red) 12%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--red) 35%, transparent);
+    border-radius: 10px;
   }
 
   .warn {
-    background: #fff3cd;
-    border: 1px solid #ffc107;
-    color: #856404;
+    background: color-mix(in srgb, var(--gold) 14%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+    color: #fde68a;
     padding: 0.875rem 1rem;
-    border-radius: 8px;
+    border-radius: 10px;
     margin-bottom: 1rem;
     font-size: 0.9rem;
     line-height: 1.5;
@@ -573,14 +663,16 @@
 
   .url-hint {
     font-size: 0.85rem;
-    color: #5a6270;
+    color: var(--muted);
     margin: 0 0 1rem;
     word-break: break-all;
   }
 
   .url-hint code {
-    background: #f0f2f5;
-    padding: 0.15rem 0.4rem;
-    border-radius: 4px;
+    background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+    color: #ddd6fe;
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
   }
 </style>

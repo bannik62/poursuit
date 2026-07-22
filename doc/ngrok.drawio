@@ -1,0 +1,72 @@
+<mxfile host="65bd71144e">
+    <diagram id="ngrok-dev" name="ngrok — dev local">
+        <mxGraphModel dx="2032" dy="372" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="t" value="Dev local avec ngrok — accès téléphone" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=18;fontStyle=1" parent="1" vertex="1">
+                    <mxGeometry x="280" y="20" width="640" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="phone" value="&lt;b&gt;Téléphone&lt;/b&gt;&lt;br&gt;4G / WiFi&lt;br&gt;Scan QR → /joueur/" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="-30" y="80" width="150" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="pc" value="&lt;b&gt;PC formateur&lt;/b&gt;&lt;br&gt;Admin / plateau&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;→ URL ngrok&lt;br&gt;(pas localhost)&lt;/font&gt;" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="240" width="150" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="cloud" value="Internet&lt;br&gt;&lt;b&gt;ngrok cloud&lt;/b&gt;&lt;br&gt;https://xxxx.ngrok-free.app" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=0" parent="1" vertex="1">
+                    <mxGeometry x="350" y="60" width="260" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="docker-zone" value="Machine locale (WSL / PC) — Docker Compose" style="swimlane;horizontal=0;startSize=28;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=12" parent="1" vertex="1">
+                    <mxGeometry x="60" y="360" width="1080" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="ngrok-c" value="&lt;b&gt;ngrok&lt;/b&gt; (conteneur)&lt;br&gt;profile: ngrok&lt;br&gt;tunnel → frontend:80&lt;br&gt;dashboard :4040" style="rounded=1;fillColor=#e1d5e7;strokeColor=#9673a6;whiteSpace=wrap;html=1;fontSize=11;" parent="docker-zone" vertex="1">
+                    <mxGeometry x="60" y="45" width="180" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="frontend" value="&lt;b&gt;frontend&lt;/b&gt; nginx :80&lt;br&gt;port hôte &lt;b&gt;:8083&lt;/b&gt;&lt;br&gt;/admin /joueur /plateau&lt;br&gt;proxy /api /socket.io" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;whiteSpace=wrap;html=1;fontSize=11;" parent="docker-zone" vertex="1">
+                    <mxGeometry x="320" y="45" width="220" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="backend" value="&lt;b&gt;backend&lt;/b&gt; :3000&lt;br&gt;port hôte :3004&lt;br&gt;QR = PUBLIC_URL&lt;br&gt;CORS = FRONTEND_URL" style="rounded=1;fillColor=#f8cecc;strokeColor=#b85450;whiteSpace=wrap;html=1;fontSize=11;" parent="docker-zone" vertex="1">
+                    <mxGeometry x="620" y="45" width="200" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="script" value="&lt;b&gt;./scripts/ngrok-dev.sh&lt;/b&gt;&lt;br&gt;1. docker compose --profile ngrok up&lt;br&gt;2. lit URL sur localhost:4040&lt;br&gt;3. met à jour .env&lt;br&gt;4. redémarre backend" style="shape=note;whiteSpace=wrap;html=1;size=16;fillColor=#fff2cc;strokeColor=#d6b656;align=left;fontSize=11;" parent="docker-zone" vertex="1">
+                    <mxGeometry x="860" y="40" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="qr" value="QR code généré :&lt;br&gt;&lt;b&gt;PUBLIC_URL&lt;/b&gt;/joueur/?token=…" style="shape=document;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="100" width="200" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="why" value="&lt;b&gt;Pourquoi ngrok ?&lt;/b&gt;&lt;br&gt;• localhost n&#39;est pas joignable depuis un téléphone&lt;br&gt;• PUBLIC_URL dans le QR doit être une URL publique HTTPS&lt;br&gt;• FRONTEND_URL = même origine pour CORS / Socket.IO&lt;br&gt;• Admin ET téléphones utilisent la même URL ngrok" style="text;html=1;strokeColor=#666666;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="620" width="520" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="warn" value="&lt;b&gt;⚠ Plan gratuit&lt;/b&gt;&lt;br&gt;L&#39;URL ngrok change à chaque redémarrage.&lt;br&gt;→ Relancer ngrok-dev.sh&lt;br&gt;→ Recréer une session admin (nouveaux QR)" style="shape=warning;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="620" width="320" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#82b366;fontStyle=1" parent="1" source="phone" target="cloud" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" value="HTTPS (recommandé)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#6c8ebf;dashed=1" parent="1" source="pc" target="cloud" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" value="tunnel" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#9673a6" parent="1" source="cloud" target="ngrok-c" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#9673a6" parent="1" source="ngrok-c" target="frontend" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" value="/api + /socket.io" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#b85450;fontStyle=1" parent="1" source="frontend" target="backend" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e6" value="localhost:8083 possible&lt;br&gt;mais QR invalides" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1;strokeColor=#999999;dashed=1;fontSize=10" parent="1" source="pc" target="frontend" edge="1">
+                    <mxGeometry x="-1" y="96" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="430" y="275"/>
+                        </Array>
+                        <mxPoint x="70" y="-31" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1;strokeColor=#6c8ebf;dashed=1" parent="1" source="backend" target="qr" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

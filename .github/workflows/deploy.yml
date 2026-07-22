@@ -37,7 +37,7 @@ jobs:
             printf '%s\n' "PUBLIC_URL=${{ secrets.PUBLIC_URL }}"
             printf '%s\n' "FRONTEND_URL=${{ secrets.FRONTEND_URL }}"
             printf '%s\n' "MIN_PLAYERS=2"
-            printf '%s\n' "MAX_PLAYERS=6"
+            printf '%s\n' "MAX_PLAYERS=4"
             printf '%s\n' "GAME_HTTP_PORT=${{ secrets.GAME_HTTP_PORT }}"
           } | ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" -o StrictHostKeyChecking=accept-new \
               "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \

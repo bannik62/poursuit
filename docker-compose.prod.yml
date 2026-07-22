@@ -20,7 +20,7 @@ services:
       PUBLIC_URL: ${PUBLIC_URL}
       FRONTEND_URL: ${FRONTEND_URL}
       MIN_PLAYERS: ${MIN_PLAYERS:-2}
-      MAX_PLAYERS: ${MAX_PLAYERS:-6}
+      MAX_PLAYERS: ${MAX_PLAYERS:-4}
 
   frontend:
     build:

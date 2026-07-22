@@ -54,7 +54,9 @@ trivial-asso/
 ├── docker-compose.yml      # backend + frontend [+ ngrok]
 ├── doc/
 │   ├── architecture.md     # ce fichier
-│   └── connexions.drawio   # schéma draw.io (prod, dev, Socket.IO)
+│   ├── connexions.drawio   # schéma draw.io (prod, dev, Socket.IO)
+│   ├── ngrok.md            # dev téléphone via ngrok
+│   └── ngrok.drawio        # schéma ngrok
 ├── scripts/
 │   ├── ngrok-dev.sh        # dev téléphone via ngrok
 │   └── setup-phone-access.ps1  # alternative IP locale (WSL)
@@ -137,7 +139,7 @@ Tout passe par **un seul port** (`8083`) — pas besoin d'ouvrir plusieurs ports
 | `PUBLIC_URL` | URL dans les **QR codes** joueur |
 | `FRONTEND_URL` | Origine CORS + cookies |
 | `NGROK_AUTHTOKEN` | Token ngrok (dev téléphone) |
-| `MIN_PLAYERS` / `MAX_PLAYERS` | 2 à 6 |
+| `MIN_PLAYERS` / `MAX_PLAYERS` | 2 à 4 |
 
 **Important QR codes :** `PUBLIC_URL` doit être une URL accessible depuis le téléphone.
 
@@ -149,6 +151,8 @@ Tout passe par **un seul port** (`8083`) — pas besoin d'ouvrir plusieurs ports
 ---
 
 ## Dev avec ngrok (téléphone)
+
+Guide complet : **[`doc/ngrok.md`](./ngrok.md)** · schéma : [`doc/ngrok.drawio`](./ngrok.drawio)
 
 1. Ajouter `NGROK_AUTHTOKEN` dans `.env`
 2. Lancer :
@@ -177,7 +181,7 @@ Dashboard ngrok : http://localhost:4040
 ### Parcours formateur (admin)
 
 1. Login → `POST /api/auth/login` (cookie JWT httpOnly)
-2. Choisir 2–6 joueurs → `POST /api/admin/session`
+2. Choisir 2–4 joueurs → `POST /api/admin/session`
 3. QR codes générés : `{PUBLIC_URL}/joueur/?token=XXXX`
 4. Suivi live des connexions (Socket.IO)
 5. Lancer la partie quand tous connectés

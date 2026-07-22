@@ -9,6 +9,7 @@
   import QuestionOverlay from './components/QuestionOverlay.svelte';
   import AnswerOverlay from './components/AnswerOverlay.svelte';
   import PodiumBanner from './components/PodiumBanner.svelte';
+  import AuroraBackground from './components/effects/AuroraBackground.svelte';
   import { DICE_HOLD_MS, inferRollCue } from '@trivial-asso/game';
   import {
     unlockAudio,
@@ -229,6 +230,8 @@
   });
 </script>
 
+<AuroraBackground />
+
 <main class="screen" class:playing={gameStarted} onclick={enableAudio}>
   <header class="brand">
     <h1>Trivial Asso</h1>
@@ -282,14 +285,16 @@
 
 <style>
   .screen {
+    position: relative;
+    z-index: 1;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 1.5rem 2rem 2rem;
-    background: radial-gradient(ellipse at center, #1e2a4a 0%, #0d1117 70%);
-    color: #fff;
+    color: var(--text);
   }
 
   .screen.playing {
@@ -305,12 +310,17 @@
   .brand h1 {
     margin: 0;
     font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 800;
     letter-spacing: 0.02em;
+    background: var(--grad-title);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   .tag {
     margin: 0.35rem 0 0;
-    color: #2ecc71;
+    color: var(--green);
     font-weight: 700;
     font-size: 1.1rem;
   }
@@ -325,26 +335,35 @@
     flex-wrap: wrap;
   }
 
-  .loading,
-  .error {
+  .loading {
     font-size: 1.5rem;
-    opacity: 0.8;
+    color: var(--muted);
+    letter-spacing: 0.03em;
   }
 
   .error {
-    color: #e74c3c;
+    font-size: 1.25rem;
+    color: var(--red-light);
+    padding: 1rem 1.5rem;
+    background: color-mix(in srgb, var(--red-light) 12%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--red-light) 35%, transparent);
+    border-radius: 12px;
+    max-width: 36rem;
+    text-align: center;
   }
 
   .winner-banner {
     margin-bottom: 1rem;
     padding: 1rem 2rem;
-    background: linear-gradient(135deg, #c9a227, #f1c40f);
-    color: #1a1a2e;
+    background: var(--grad-gold);
+    color: #1a1025;
     border-radius: 16px;
     font-size: clamp(1.25rem, 3vw, 2rem);
     font-weight: 800;
     text-align: center;
-    box-shadow: 0 8px 32px rgb(0 0 0 / 35%);
+    box-shadow:
+      0 0 0 1px rgb(245 158 11 / 25%),
+      0 8px 32px rgb(0 0 0 / 40%);
   }
 
   .audio-btn {
@@ -352,12 +371,17 @@
     top: 1rem;
     right: 1rem;
     z-index: 30;
-    padding: 0.6rem 1rem;
+    padding: 0.6rem 1.1rem;
     border: none;
     border-radius: 999px;
-    background: #f1c40f;
-    color: #1a1a2e;
+    background: var(--grad-cta);
+    color: #fff;
     font-weight: 800;
     cursor: pointer;
+    box-shadow: 0 4px 20px rgb(124 58 237 / 35%);
+  }
+
+  .audio-btn:hover {
+    filter: brightness(1.08);
   }
 </style>
