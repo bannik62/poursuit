@@ -20,6 +20,7 @@
     smallWedgePoints,
     hubSlicePath,
     pawnOffset,
+    PAWN_RADIUS,
     wedgeSectorPath,
     isHQ,
     isRejouez,
@@ -355,27 +356,27 @@
       {@const fill = pawnFill(p)}
       <circle
         cx={pos.x + off.dx}
-        cy={pos.y + off.dy + 2}
-        r="14"
+        cy={pos.y + off.dy + 3}
+        r={PAWN_RADIUS - 2}
         fill="#000"
         opacity="0.22"
       />
       <circle
         cx={pos.x + off.dx}
         cy={pos.y + off.dy}
-        r="15"
+        r={PAWN_RADIUS}
         fill={fill}
         stroke={p.slot === current ? '#111' : '#fff'}
-        stroke-width={p.slot === current ? 3.5 : 2}
+        stroke-width={p.slot === current ? 4 : 2.5}
         filter="url(#pawn-shadow)"
         class:current={p.slot === current}
       />
       <text
         x={pos.x + off.dx}
-        y={pos.y + off.dy + 4}
+        y={pos.y + off.dy + 5}
         text-anchor="middle"
         fill="#fff"
-        font-size="11"
+        font-size="14"
         font-weight="800"
         style="text-shadow: 0 1px 2px rgb(0 0 0 / 45%)"
       >

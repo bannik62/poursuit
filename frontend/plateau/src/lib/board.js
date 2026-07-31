@@ -209,9 +209,13 @@ export function hubSlicePath(seriesId) {
   return `M ${i0.x} ${i0.y} L ${o0.x} ${o0.y} A ${r1} ${r1} 0 0 1 ${o1.x} ${o1.y} L ${i1.x} ${i1.y} A ${r0} ${r0} 0 0 0 ${i0.x} ${i0.y} Z`;
 }
 
+export const PAWN_RADIUS = 20;
+/** Écart entre pions sur la même case */
+export const PAWN_SPREAD = 15;
+
 export function pawnOffset(slot, total = 6) {
   const a = (slot / total) * TAU;
-  return { dx: 11 * Math.cos(a), dy: 11 * Math.sin(a) };
+  return { dx: PAWN_SPREAD * Math.cos(a), dy: PAWN_SPREAD * Math.sin(a) };
 }
 
 /** Chemin SVG de la case (anneau ou rayon) pour surbrillance pion */
