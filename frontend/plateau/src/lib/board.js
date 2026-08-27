@@ -172,26 +172,28 @@ export function wedgeSectorPath(seriesId) {
 
 export function hqTrianglePoints(index) {
   const { x, y, angle } = ringTileCenter(index);
+  const s = CASE_CONTENT_SCALE;
   const inward = angle + Math.PI;
-  const tipX = x + 48 * Math.cos(inward);
-  const tipY = y + 48 * Math.sin(inward);
+  const tipX = x + 48 * s * Math.cos(inward);
+  const tipY = y + 48 * s * Math.sin(inward);
   const perp = angle + Math.PI / 2;
-  const bx1 = x + 28 * Math.cos(perp);
-  const by1 = y + 28 * Math.sin(perp);
-  const bx2 = x - 28 * Math.cos(perp);
-  const by2 = y - 28 * Math.sin(perp);
+  const bx1 = x + 28 * s * Math.cos(perp);
+  const by1 = y + 28 * s * Math.sin(perp);
+  const bx2 = x - 28 * s * Math.cos(perp);
+  const by2 = y - 28 * s * Math.sin(perp);
   return `${tipX},${tipY} ${bx1},${by1} ${bx2},${by2}`;
 }
 
 export function smallWedgePoints(x, y, angle, size = 6) {
+  const s = size * CASE_CONTENT_SCALE;
   const inward = angle + Math.PI;
-  const tipX = x + size * Math.cos(inward);
-  const tipY = y + size * Math.sin(inward);
+  const tipX = x + s * Math.cos(inward);
+  const tipY = y + s * Math.sin(inward);
   const perp = angle + Math.PI / 2;
-  const bx1 = x + size * 0.55 * Math.cos(perp);
-  const by1 = y + size * 0.55 * Math.sin(perp);
-  const bx2 = x - size * 0.55 * Math.cos(perp);
-  const by2 = y - size * 0.55 * Math.sin(perp);
+  const bx1 = x + s * 0.55 * Math.cos(perp);
+  const by1 = y + s * 0.55 * Math.sin(perp);
+  const bx2 = x - s * 0.55 * Math.cos(perp);
+  const by2 = y - s * 0.55 * Math.sin(perp);
   return `${tipX},${tipY} ${bx1},${by1} ${bx2},${by2}`;
 }
 
@@ -209,7 +211,26 @@ export function hubSlicePath(seriesId) {
   return `M ${i0.x} ${i0.y} L ${o0.x} ${o0.y} A ${r1} ${r1} 0 0 1 ${o1.x} ${o1.y} L ${i1.x} ${i1.y} A ${r0} ${r0} 0 0 0 ${i0.x} ${i0.y} Z`;
 }
 
+export function passTurnTextPath(index, inset = 12) {
+  const { mid } = ringTileAngles(index);
+  const cos = Math.cos(mid);
+  const sin = Math.sin(mid);
+  const rOut = RING_BAND_OUTER - inset;
+  const rIn = RING_BAND_INNER + inset;
+  const ox = CX + rOut * cos;
+  const oy = CY + rOut * sin;
+  const ix = CX + rIn * cos;
+  const iy = CY + rIn * sin;
+  // Demi-bas : inverser le sens pour garder le texte lisible
+  if (mid > Math.PI / 2 || mid < -Math.PI / 2) {
+    return `M ${ix} ${iy} L ${ox} ${oy}`;
+  }
+  return `M ${ox} ${oy} L ${ix} ${iy}`;
+}
+
 export const PAWN_RADIUS = 20;
+/** Échelle des pictos / textes dessinés dans les cases */
+export const CASE_CONTENT_SCALE = 1.35;
 /** Écart entre pions sur la même case */
 export const PAWN_SPREAD = 15;
 
@@ -233,10 +254,3 @@ export function tilePathForPosition(index) {
 export function isCenterPosition(index) {
   return index === CENTER_PASS_INDEX;
 }
-
-export const CORNER_LEGENDS = [
-  { x: 52, y: 52, anchor: 'start' },
-  { x: 948, y: 52, anchor: 'end' },
-  { x: 52, y: 948, anchor: 'start' },
-  { x: 948, y: 948, anchor: 'end' },
-];

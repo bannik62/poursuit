@@ -1,29 +1,32 @@
 <script>
   import { onMount } from 'svelte';
-  import { PLAYER_COLORS } from '@trivial-asso/game';
+  import { PLAYER_ANIMALS, playerColorHex, DEFAULT_EVENT_TITLE } from '@trivial-asso/game';
   import { fetchLobby } from '../lib/api.js';
+  import AnimalIcon from './AnimalIcon.svelte';
 
   let {
     name = $bindable(''),
-    color = $bindable(null),
+    animal = $bindable(null),
     token = '',
     loading = false,
     onsubmit,
   } = $props();
 
-  let takenColors = $state([]);
+  let takenAnimals = $state([]);
   let lobbyError = $state('');
+  let eventTitle = $state(DEFAULT_EVENT_TITLE);
 
   const canSubmit = $derived(
-    !!name.trim() && color != null && !loading && !takenColors.includes(color),
+    !!name.trim() && animal != null && !loading && !takenAnimals.includes(animal),
   );
 
   onMount(async () => {
     if (!token) return;
     try {
       const lobby = await fetchLobby(token);
-      takenColors = lobby.takenColors ?? [];
-      if (lobby.myColor != null && color == null) color = lobby.myColor;
+      takenAnimals = lobby.takenAnimals ?? [];
+      eventTitle = lobby.eventTitle ?? DEFAULT_EVENT_TITLE;
+      if (lobby.myAnimal != null && animal == null) animal = lobby.myAnimal;
       if (lobby.myName && !name) name = lobby.myName;
     } catch (err) {
       lobbyError = err.message;
@@ -33,38 +36,43 @@
 
 <div class="screen">
   <div class="hero">
-    <span class="badge">Trivial Asso</span>
+    <span class="badge">{eventTitle}</span>
     <h1>Bienvenue !</h1>
-    <p class="lead">Choisissez votre couleur et entrez votre prénom.</p>
+    <p class="lead">Choisissez votre animal et entrez votre prénom.</p>
   </div>
 
   <form class="card" onsubmit={onsubmit}>
-    <fieldset class="colors" disabled={loading}>
-      <legend>Votre couleur</legend>
-      <div class="swatches" role="radiogroup" aria-label="Couleur du joueur">
-        {#each PLAYER_COLORS as c (c.id)}
-          {@const taken = takenColors.includes(c.id) && color !== c.id}
+    <fieldset class="animals" disabled={loading}>
+      <legend>Votre pion</legend>
+      <div class="grid" role="radiogroup" aria-label="Animal du joueur">
+        {#each PLAYER_ANIMALS as a (a.id)}
+          {@const taken = takenAnimals.includes(a.id) && animal !== a.id}
+          {@const ringColor = playerColorHex(a.id % 6)}
           <button
             type="button"
-            class="swatch"
-            class:selected={color === c.id}
+            class="pick"
+            class:selected={animal === a.id}
             class:taken
-            style:--swatch={c.hex}
             disabled={taken || loading}
-            aria-pressed={color === c.id}
-            aria-label={taken ? `${c.name} (prise)` : c.name}
+            aria-pressed={animal === a.id}
+            aria-label={taken ? `${a.name} (pris)` : a.name}
+            style:--ring={ringColor}
             onclick={() => {
-              if (!taken) color = c.id;
+              if (!taken) animal = a.id;
             }}
           >
-            {#if color === c.id}
+            <span class="icon-wrap">
+              <AnimalIcon animalId={a.id} size={46} />
+            </span>
+            <span class="label">{a.name}</span>
+            {#if animal === a.id}
               <span class="check" aria-hidden="true">✓</span>
             {/if}
           </button>
         {/each}
       </div>
-      {#if color == null}
-        <p class="hint">Touchez une couleur pour la choisir</p>
+      {#if animal == null}
+        <p class="hint">Touchez un animal pour le choisir</p>
       {/if}
     </fieldset>
 
@@ -140,59 +148,92 @@
     gap: 1rem;
   }
 
-  .colors {
+  .animals {
     border: none;
     margin: 0;
     padding: 0;
   }
 
-  .colors legend {
+  .animals legend {
     font-weight: 600;
     color: #3d4450;
     margin-bottom: 0.65rem;
   }
 
-  .swatches {
+  .grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.65rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.55rem;
   }
 
-  .swatch {
-    aspect-ratio: 1;
-    border-radius: 16px;
+  .pick {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.35rem 0.45rem;
+    border-radius: 14px;
     border: 3px solid transparent;
-    background: var(--swatch);
+    background: #f4f6f9;
     cursor: pointer;
     position: relative;
-    box-shadow: inset 0 -4px 0 rgb(0 0 0 / 12%);
     transition: transform 0.12s, border-color 0.12s, opacity 0.12s;
   }
 
-  .swatch:not(:disabled):active {
+  .icon-wrap {
+    display: grid;
+    place-items: center;
+    width: 3.35rem;
+    height: 3.35rem;
+    border-radius: 50%;
+    background: var(--ring, #ccc);
+    padding: 0.22rem;
+    box-shadow: inset 0 0 0 2px rgb(255 255 255 / 35%);
+  }
+
+  .icon-wrap :global(.animal-icon) {
+    background: #fff;
+    border-radius: 50%;
+  }
+
+  .pick:not(:disabled):active {
     transform: scale(0.96);
   }
 
-  .swatch.selected {
-    border-color: #1a1a2e;
-    transform: scale(1.04);
+  .pick.selected {
+    border-color: var(--ring, #1a1a2e);
+    background: #fff;
+    transform: scale(1.02);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring, #1a1a2e) 35%, transparent);
   }
 
-  .swatch.taken {
+  .pick.taken {
     opacity: 0.35;
     cursor: not-allowed;
-    filter: grayscale(0.4);
+    filter: grayscale(0.5);
+  }
+
+  .label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #3d4450;
+    text-align: center;
+    line-height: 1.15;
   }
 
   .check {
     position: absolute;
-    inset: 0;
+    top: 0.35rem;
+    right: 0.35rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    background: #1a1a2e;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 900;
     display: grid;
     place-items: center;
-    color: white;
-    font-size: 1.5rem;
-    font-weight: 900;
-    text-shadow: 0 1px 3px rgb(0 0 0 / 35%);
   }
 
   .hint {
@@ -242,5 +283,11 @@
   .primary:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 380px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 </style>

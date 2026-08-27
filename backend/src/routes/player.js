@@ -19,6 +19,9 @@ router.get('/lobby', (req, res) => {
     sessionId: found.session.id,
     status: found.session.status,
     playerCount: found.session.playerCount,
+    eventTitle: found.session.eventTitle,
+    takenAnimals: found.session.takenAnimals(found.player.slot),
+    myAnimal: found.player.animal,
     takenColors: found.session.takenColors(found.player.slot),
     myColor: found.player.color,
     myName: found.player.name,
@@ -26,7 +29,7 @@ router.get('/lobby', (req, res) => {
 });
 
 router.post('/join', (req, res) => {
-  const { token, name, color } = req.body ?? {};
+  const { token, name, animal } = req.body ?? {};
   const found = findSessionByPlayerToken(token);
 
   if (!found) {
@@ -44,7 +47,7 @@ router.post('/join', (req, res) => {
     }
   }
 
-  const result = found.session.joinPlayer(token, name, color);
+  const result = found.session.joinPlayer(token, name, animal);
   if (result.error) {
     return res.status(400).json({ error: result.error });
   }
@@ -63,6 +66,7 @@ router.post('/join', (req, res) => {
       slot: result.player.slot,
       name: result.player.name,
       color: result.player.color,
+      animal: result.player.animal,
     },
     session: state,
     reconnected: result.reconnected,

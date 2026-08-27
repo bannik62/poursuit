@@ -21,8 +21,11 @@ export default defineConfig({
     host: true,
     port: 5174,
     proxy: {
-      '/api': 'http://localhost:3000',
-      '/socket.io': { target: 'http://localhost:3000', ws: true },
+      '/api': `http://localhost:${process.env.BACKEND_PORT || 3004}`,
+      '/socket.io': {
+        target: `http://localhost:${process.env.BACKEND_PORT || 3004}`,
+        ws: true,
+      },
     },
   },
 });

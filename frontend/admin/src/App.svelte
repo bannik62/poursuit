@@ -3,6 +3,7 @@
   import QRCode from 'qrcode';
   import { api } from './lib/api.js';
   import { subscribeSession } from './lib/socket.js';
+  import { DEFAULT_EVENT_TITLE, MAX_EVENT_TITLE_LENGTH } from '@trivial-asso/game';
   import AuroraBackground from './components/effects/AuroraBackground.svelte';
 
   let phase = $state('loading');
@@ -13,6 +14,7 @@
   let password = $state('');
 
   let playerCount = $state(4);
+  let eventTitle = $state(DEFAULT_EVENT_TITLE);
   let session = $state(null);
   let qrCodes = $state([]);
   let plateauUrl = $state('');
@@ -80,7 +82,7 @@
     try {
       const data = await api('/admin/session', {
         method: 'POST',
-        body: JSON.stringify({ playerCount }),
+        body: JSON.stringify({ playerCount, eventTitle: eventTitle.trim() || DEFAULT_EVENT_TITLE }),
       });
       session = data;
       plateauUrl = `${data.publicUrl || window.location.origin}/plateau/?session=${data.id}`;
@@ -143,6 +145,13 @@
     } catch (err) {
       error = err.message;
     }
+  }
+
+  async function saveEventTitle(value) {
+    const next = value.trim() || DEFAULT_EVENT_TITLE;
+    const current = session?.eventTitle ?? DEFAULT_EVENT_TITLE;
+    if (!session || next === current) return;
+    await patchSettings({ eventTitle: next });
   }
 
   async function patchSettings(patch) {
@@ -233,6 +242,16 @@
           {/each}
         </select>
       </label>
+      <label>
+        Titre de l'événement
+        <input
+          type="text"
+          bind:value={eventTitle}
+          maxlength={MAX_EVENT_TITLE_LENGTH}
+          placeholder={DEFAULT_EVENT_TITLE}
+        />
+        <small class="field-hint">Affiché sur le plateau et les téléphones (ex. « Soirée équipe », « Formation Q1 »)</small>
+      </label>
       <button class="btn-primary" onclick={createSession}>Créer une session</button>
     </div>
 
@@ -252,6 +271,23 @@
     <p class="counter">
       {session.connectedCount}/{session.playerCount} joueurs connectés
     </p>
+
+    <label class="field-row">
+      <span class="field-text">
+        <strong>Titre de l'événement</strong>
+        <small>Modifiable à tout moment — plateau et téléphones des joueurs</small>
+      </span>
+      <input
+        type="text"
+        class="title-input"
+        value={session.eventTitle ?? DEFAULT_EVENT_TITLE}
+        maxlength={MAX_EVENT_TITLE_LENGTH}
+        onblur={(e) => saveEventTitle(e.currentTarget.value)}
+        onkeydown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur();
+        }}
+      />
+    </label>
 
     <label class="switch-row">
       <span class="switch-text">
@@ -452,6 +488,46 @@
   select option {
     background: var(--surface);
     color: var(--text);
+  }
+
+  .field-hint {
+    display: block;
+    margin-top: 0.15rem;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .field-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin: 1rem 0 0.5rem;
+    padding: 1rem 1.15rem;
+    background: color-mix(in srgb, var(--bg) 65%, var(--surface));
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .field-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .field-text strong {
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+
+  .field-text small {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.35;
+  }
+
+  .title-input {
+    width: 100%;
   }
 
   .btn-primary,

@@ -11,7 +11,7 @@
   import AnswerOverlay from './components/AnswerOverlay.svelte';
   import PodiumBanner from './components/PodiumBanner.svelte';
   import AuroraBackground from './components/effects/AuroraBackground.svelte';
-  import { DICE_HOLD_MS, inferRollCue } from '@trivial-asso/game';
+  import { DICE_HOLD_MS, inferRollCue, DEFAULT_EVENT_TITLE } from '@trivial-asso/game';
   import {
     unlockAudio,
     playUnlockConfirm,
@@ -22,8 +22,10 @@
     playPass,
     playRejouez,
   } from './lib/sfx.js';
+  import { createPreviewSession } from './lib/previewSession.js';
 
   const params = new URLSearchParams(window.location.search);
+  const previewMode = params.has('preview');
   const sessionId = params.get('session');
 
   let session = $state(null);
@@ -57,6 +59,11 @@
   let hydrated = false;
   /** @type {{ at: number | string, name: string, dice: number | string, action: string }[]} */
   let turnHistory = $state([]);
+
+  $effect(() => {
+    const title = session?.eventTitle ?? DEFAULT_EVENT_TITLE;
+    document.title = `${title} — Plateau`;
+  });
 
   const TURN_ACTION_LABELS = {
     rejouez: 'À rejouer',
@@ -249,8 +256,16 @@
   }
 
   onMount(() => {
+    if (previewMode) {
+      const mock = createPreviewSession();
+      gameStarted = true;
+      session = mock;
+      presentedSession = mock;
+      return;
+    }
+
     if (!sessionId) {
-      error = "Ajoutez ?session=XXX dans l'URL (lien fourni par le formateur).";
+      error = "Ajoutez ?session=XXX dans l'URL (lien fourni par le formateur), ou ?preview pour le mode design.";
       return;
     }
 
@@ -299,8 +314,8 @@
 
 <main class="screen" class:playing={gameStarted}>
   <header class="brand">
-    <h1>Trivial Asso</h1>
-    {#if gameStarted && session}
+    <h1>{session?.eventTitle ?? DEFAULT_EVENT_TITLE}</h1>
+    {#if gameStarted && session && !previewMode}
       <p class="tag">Partie en cours</p>
     {/if}
   </header>
@@ -353,7 +368,9 @@
       <QuestionOverlay question={(presentedSession ?? session).currentQuestion} />
     {/if}
     <div class="game">
-      <Board {session} {onMoveAnimDone} soundEnabled={canPlaySound()} />
+      <div class="board-wrap">
+        <Board {session} eventTitle={session?.eventTitle ?? DEFAULT_EVENT_TITLE} {onMoveAnimDone} soundEnabled={canPlaySound()} />
+      </div>
       <div class="sidebar">
         <GameHud session={presentedSession ?? session} />
         <TurnHistory entries={turnHistory} />
@@ -369,8 +386,9 @@
   .screen {
     position: relative;
     z-index: 1;
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -381,12 +399,27 @@
 
   .screen.playing {
     justify-content: flex-start;
-    padding-top: 1rem;
+    padding: 0.65rem 1.25rem 0.85rem;
+  }
+
+  .screen.playing .brand {
+    margin-bottom: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .screen.playing .brand h1 {
+    font-size: clamp(1.35rem, 2.4vw, 2rem);
+  }
+
+  .screen.playing .tag {
+    font-size: 0.95rem;
+    margin-top: 0.15rem;
   }
 
   .brand {
     text-align: center;
     margin-bottom: 1rem;
+    flex-shrink: 0;
   }
 
   .brand h1 {
@@ -409,21 +442,32 @@
 
   .game {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     justify-content: center;
-    gap: 2rem;
+    gap: 1.25rem;
     width: 100%;
-    max-width: 1400px;
-    flex-wrap: wrap;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .board-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    container-type: size;
   }
 
   .sidebar {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    min-width: 280px;
-    max-width: 320px;
-    max-height: calc(100dvh - 8rem);
+    align-items: flex-end;
+    gap: 0.75rem;
+    flex-shrink: 0;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .loading {

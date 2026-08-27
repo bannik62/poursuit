@@ -15,8 +15,9 @@ export function broadcastSessionState(session) {
   io.to(session.id).emit('session:state', session.toJSON());
 }
 
-export function createSession(playerCount) {
+export function createSession(playerCount, eventTitle) {
   const session = new Session(playerCount);
+  if (eventTitle != null) session.setEventTitle(eventTitle);
   sessions.set(session.id, session);
   return session;
 }

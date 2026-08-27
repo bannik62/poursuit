@@ -1,5 +1,6 @@
 <script>
-  import { SERIES, PAWN_COLORS, playerColorHex } from '../lib/board.js';
+  import { SERIES, playerColorHex } from '../lib/board.js';
+  import AnimalIcon from './AnimalIcon.svelte';
 
   let { session } = $props();
 
@@ -7,9 +8,10 @@
   const current = $derived(session?.currentPlayer ?? 0);
   const currentName = $derived(players[current]?.name ?? '…');
 
-  function pawnColor(p) {
+  function pawnRingColor(p) {
     if (p.color != null) return playerColorHex(p.color);
-    return PAWN_COLORS[p.slot % PAWN_COLORS.length];
+    if (p.animal != null) return playerColorHex(p.animal % 6);
+    return '#888';
   }
 </script>
 
@@ -23,10 +25,13 @@
     {#each players as p (p.slot)}
       {#if p.connected}
         <li class:active={p.slot === current}>
-          <span
-            class="pawn-dot"
-            style:background={pawnColor(p)}
-          ></span>
+          {#if p.animal != null}
+            <span class="icon-wrap" style:--ring={pawnRingColor(p)}>
+              <AnimalIcon animalId={p.animal} size={22} />
+            </span>
+          {:else}
+            <span class="pawn-dot fallback"></span>
+          {/if}
           <span class="pname">{p.name}</span>
           <span class="wedges">
             {#each SERIES as s, i}
@@ -48,16 +53,16 @@
     background: color-mix(in srgb, var(--surface) 85%, transparent);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 1.25rem 1.5rem;
-    min-width: 280px;
-    max-width: 320px;
+    padding: 1rem 1.25rem;
+    width: min(400px, 34vw);
+    min-width: 320px;
     flex-shrink: 0;
     backdrop-filter: blur(10px);
     box-shadow: 0 12px 32px rgb(0 0 0 / 30%);
   }
 
   .turn {
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
   }
@@ -89,8 +94,8 @@
   li {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.5rem 0.65rem;
+    gap: 0.75rem;
+    padding: 0.55rem 0.85rem;
     border-radius: 10px;
     background: color-mix(in srgb, var(--bg) 45%, transparent);
     border: 1px solid transparent;
@@ -100,6 +105,30 @@
     background: color-mix(in srgb, var(--accent) 18%, var(--surface));
     border-color: color-mix(in srgb, var(--accent) 45%, transparent);
     outline: none;
+  }
+
+  .pawn-dot.fallback {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--muted);
+  }
+
+  .icon-wrap {
+    display: grid;
+    place-items: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--ring, #888);
+    padding: 0.12rem;
+  }
+
+  .icon-wrap :global(.animal-icon) {
+    background: #fff;
+    border-radius: 50%;
   }
 
   .pawn-dot {
@@ -119,10 +148,12 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2px;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     overflow: hidden;
+    flex-shrink: 0;
+    margin-left: auto;
   }
 
   .wedge {

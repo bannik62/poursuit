@@ -49,6 +49,14 @@ docker compose up -d --build
 
 Ouvrir **http://localhost:8083/admin/** — login admin → créer une session → scanner les QR.
 
+### Prévisualiser le plateau (design, sans joueurs)
+
+```bash
+cd frontend/plateau && npm install && npm run dev
+```
+
+Ouvrir **http://localhost:5174/plateau/?preview=1** — plateau avec 4 pions fictifs, sans backend ni inscription.
+
 ### Dev avec téléphone (ngrok)
 
 1. Ajouter `NGROK_AUTHTOKEN` dans `.env`

@@ -1,6 +1,7 @@
 # ── Build admin ──
 FROM node:22-alpine AS admin-build
 WORKDIR /app
+COPY shared ./shared
 COPY frontend/admin/package.json frontend/admin/package-lock.json* ./
 RUN npm ci 2>/dev/null || npm install
 COPY frontend/admin/ .

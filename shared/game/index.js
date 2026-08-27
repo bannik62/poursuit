@@ -1,5 +1,8 @@
 /** Source de vérité partagée — thèmes, anneau, rayons, centre. */
 
+export const DEFAULT_EVENT_TITLE = 'Trivial Asso';
+export const MAX_EVENT_TITLE_LENGTH = 48;
+
 export const SERIES = [
   { id: 0, name: 'Santé', color: '#E74C3C', label: 'A' },
   { id: 1, name: 'Préjugé', color: '#3498DB', label: 'B' },
@@ -216,3 +219,11 @@ export {
   waitForMoveAnim,
   inferRollCue,
 } from './timing.js';
+
+export {
+  PLAYER_ANIMALS,
+  MAX_ANIMALS,
+  playerAnimalHex,
+  playerAnimalName,
+} from './pawnAnimals.js';
+export { PAWN_SPRITE_SHAPES, pawnSpriteShapes } from './pawnSprites.js';

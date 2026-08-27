@@ -27,19 +27,23 @@
     isPassTurn,
     isSpokeBonus,
     spaceXY,
-    CORNER_LEGENDS,
     SPOKE_SPACES,
     tilePathForPosition,
     isCenterPosition,
+    CASE_CONTENT_SCALE,
+    passTurnTextPath,
   } from '../lib/board.js';
   import { playStep } from '../lib/sfx.js';
-  import { DICE_HOLD_MS, STEP_MS, POST_MOVE_BEAT_MS } from '@trivial-asso/game';
+  import { DICE_HOLD_MS, STEP_MS, POST_MOVE_BEAT_MS, pawnSpriteShapes, playerAnimalHex } from '@trivial-asso/game';
 
-  let { session, onMoveAnimDone, soundEnabled = false } = $props();
+  let { session, onMoveAnimDone, soundEnabled = false, eventTitle = 'Trivial Asso' } = $props();
 
   const players = $derived(session?.players ?? []);
   const current = $derived(session?.currentPlayer ?? 0);
+  const mark = CASE_CONTENT_SCALE;
 
+  const boardBadgeTitle = $derived((eventTitle || 'Trivial Asso').slice(0, 28));
+  const boardBadgeFontSize = $derived(boardBadgeTitle.length <= 14 ? 15 : boardBadgeTitle.length <= 20 ? 12 : 10);
   let displayPositions = $state({});
   let lastRollAt = 0;
   let animToken = 0;
@@ -107,7 +111,15 @@
   }
 
   function pawnFill(p) {
-    return p.color != null ? playerColorHex(p.color) : PAWN_COLORS[p.slot % PAWN_COLORS.length];
+    if (p.color != null) return playerColorHex(p.color);
+    if (p.animal != null) return playerAnimalHex(p.animal);
+    return PAWN_COLORS[p.slot % PAWN_COLORS.length];
+  }
+
+  function pawnRingColor(p) {
+    if (p.color != null) return playerColorHex(p.color);
+    if (p.animal != null) return playerColorHex(p.animal % 6);
+    return PAWN_COLORS[p.slot % PAWN_COLORS.length];
   }
 
   /** Cases occupées → couleur dominante du pion (priorité au joueur actif) */
@@ -236,10 +248,10 @@
       />
       <path d={spokeTilePath(s.id, step)} fill="url(#tile-depth)" pointer-events="none" />
       {#if bonus}
-        <text x={pos.x} y={pos.y - 2} text-anchor="middle" fill="#fff" font-size="7" font-weight="800">
+        <text x={pos.x} y={pos.y - 2 * mark} text-anchor="middle" fill="#fff" font-size={7 * mark} font-weight="800">
           BONUS
         </text>
-        <text x={pos.x} y={pos.y + 7} text-anchor="middle" fill="#fff" font-size="5" font-weight="600" opacity="0.9">
+        <text x={pos.x} y={pos.y + 7 * mark} text-anchor="middle" fill="#fff" font-size={5 * mark} font-weight="600" opacity="0.9">
           libre
         </text>
       {:else}
@@ -269,19 +281,21 @@
       />
       <path d={ringTilePath(i)} fill="url(#tile-depth)" pointer-events="none" />
       {#if rejouez}
-        <rect x={center.x - 7} y={center.y - 7} width="14" height="14" rx="2" fill="#fff" stroke="#333" stroke-width="0.6" />
-        <circle cx={center.x - 3} cy={center.y - 3} r="1.5" fill="#333" />
-        <circle cx={center.x + 3} cy={center.y + 3} r="1.5" fill="#333" />
+        {@const dice = 7 * mark}
+        <rect x={center.x - dice} y={center.y - dice} width={dice * 2} height={dice * 2} rx="2" fill="#fff" stroke="#333" stroke-width="0.6" />
+        <circle cx={center.x - 3 * mark} cy={center.y - 3 * mark} r={1.5 * mark} fill="#333" />
+        <circle cx={center.x + 3 * mark} cy={center.y + 3 * mark} r={1.5 * mark} fill="#333" />
       {:else if passTurn}
+        <path id="pass-path-{i}" d={passTurnTextPath(i, 5 * mark)} fill="none" />
         <text
-          x={center.x}
-          y={center.y + 2}
-          text-anchor="middle"
           fill="#fff"
-          font-size="5"
+          font-size={9 * mark}
           font-weight="800"
+          letter-spacing="0.04em"
         >
-          PASSE
+          <textPath href="#pass-path-{i}" startOffset="50%" text-anchor="middle">
+            PASSE
+          </textPath>
         </text>
       {:else}
         <polygon
@@ -312,7 +326,7 @@
   <!-- Centre -->
   <circle cx={CX} cy={CY} r={CENTER_PASS_R + 4} fill="#000" opacity="0.15" />
   <circle cx={CX} cy={CY} r={CENTER_PASS_R} fill="#2d3436" stroke="#fff" stroke-width="3" />
-  <text x={CX} y={CY + 4} text-anchor="middle" fill="#c9a227" font-size="14" font-weight="800">
+  <text x={CX} y={CY + 4 * mark} text-anchor="middle" fill="#c9a227" font-size={14 * mark} font-weight="800">
     ★
   </text>
 
@@ -354,74 +368,83 @@
       {@const pos = spaceXY(pawnPosition(p.slot, p.position))}
       {@const off = pawnOffset(p.slot, players.length)}
       {@const fill = pawnFill(p)}
-      <circle
-        cx={pos.x + off.dx}
-        cy={pos.y + off.dy + 3}
-        r={PAWN_RADIUS - 2}
-        fill="#000"
-        opacity="0.22"
-      />
-      <circle
-        cx={pos.x + off.dx}
-        cy={pos.y + off.dy}
-        r={PAWN_RADIUS}
-        fill={fill}
-        stroke={p.slot === current ? '#111' : '#fff'}
-        stroke-width={p.slot === current ? 4 : 2.5}
-        filter="url(#pawn-shadow)"
-        class:current={p.slot === current}
-      />
-      <text
-        x={pos.x + off.dx}
-        y={pos.y + off.dy + 5}
-        text-anchor="middle"
-        fill="#fff"
-        font-size="14"
-        font-weight="800"
-        style="text-shadow: 0 1px 2px rgb(0 0 0 / 45%)"
-      >
-        {p.name?.[0]?.toUpperCase() ?? '?'}
-      </text>
+      {@const px = pos.x + off.dx}
+      {@const py = pos.y + off.dy}
+      {#if p.animal != null}
+        {@const pawnSize = PAWN_RADIUS * 2.65}
+        {@const pawnScale = pawnSize / 36}
+        {@const shapes = pawnSpriteShapes(p.animal)}
+        {@const ringColor = pawnRingColor(p)}
+        <circle
+          cx={px}
+          cy={py + 3}
+          r={pawnSize / 2 + 1}
+          fill="#000"
+          opacity="0.22"
+        />
+        <g
+          transform="translate({px}, {py})"
+          filter="url(#pawn-shadow)"
+          class="animal-pawn"
+          class:current={p.slot === current}
+        >
+          <circle
+            r={pawnSize / 2 + 5}
+            fill={ringColor}
+            stroke={p.slot === current ? '#111' : 'none'}
+            stroke-width={p.slot === current ? 3 : 0}
+          />
+          <circle r={pawnSize / 2 + 1.5} fill="#fff" />
+          <g transform="translate({-18 * pawnScale}, {-18 * pawnScale}) scale({pawnScale})">
+            {#each shapes as shape, i (i)}
+              <svelte:element this={shape.tag} {...shape.attrs} />
+            {/each}
+          </g>
+        </g>
+      {:else}
+        <circle
+          cx={px}
+          cy={py + 3}
+          r={PAWN_RADIUS - 2}
+          fill="#000"
+          opacity="0.22"
+        />
+        <circle
+          cx={px}
+          cy={py}
+          r={PAWN_RADIUS}
+          fill={fill}
+          stroke={p.slot === current ? '#111' : '#fff'}
+          stroke-width={p.slot === current ? 4 : 2.5}
+          filter="url(#pawn-shadow)"
+          class:current={p.slot === current}
+        />
+        <text
+          x={px}
+          y={py + 5}
+          text-anchor="middle"
+          fill="#fff"
+          font-size="14"
+          font-weight="800"
+          style="text-shadow: 0 1px 2px rgb(0 0 0 / 45%)"
+        >
+          {p.name?.[0]?.toUpperCase() ?? '?'}
+        </text>
+      {/if}
     {/if}
-  {/each}
-
-  <!-- Légendes -->
-  {#each SERIES as s, i}
-    {@const corner = CORNER_LEGENDS[i]}
-    {@const lx = corner.anchor === 'end' ? corner.x - 72 : corner.x}
-    <g filter="url(#pawn-shadow)">
-      <polygon
-        points="{lx},{corner.y - 8} {lx + 14},{corner.y + 6} {lx - 14},{corner.y + 6}"
-        fill={s.color}
-        stroke="#fff"
-        stroke-width="1"
-      />
-      <text
-        x={corner.anchor === 'end' ? corner.x - 94 : corner.x + 20}
-        y={corner.y + 5}
-        text-anchor={corner.anchor}
-        fill="#fff"
-        font-size="14"
-        font-weight="700"
-        font-family="Georgia, serif"
-        style="text-shadow: 0 1px 3px rgb(0 0 0 / 50%)"
-      >
-        {s.name}
-      </text>
-    </g>
   {/each}
 
   <g transform="translate(820, 78)" filter="url(#pawn-shadow)">
     <ellipse cx="0" cy="0" rx="105" ry="30" fill="#1a1a2e" stroke="#c9a227" stroke-width="2" />
-    <text x="0" y="-3" text-anchor="middle" fill="#c9a227" font-size="15" font-weight="800" font-family="Georgia, serif">
-      TRIVIAL ASSO
+    <text x="0" y="-3" text-anchor="middle" fill="#c9a227" font-size={boardBadgeFontSize} font-weight="800" font-family="Georgia, serif">
+      {boardBadgeTitle.toUpperCase()}
     </text>
     <text x="0" y="14" text-anchor="middle" fill="#fff" font-size="9">Édition Formation</text>
   </g>
   <g transform="translate(180, 922)" filter="url(#pawn-shadow)">
     <ellipse cx="0" cy="0" rx="105" ry="30" fill="#1a1a2e" stroke="#c9a227" stroke-width="2" />
-    <text x="0" y="-3" text-anchor="middle" fill="#c9a227" font-size="15" font-weight="800" font-family="Georgia, serif">
-      TRIVIAL ASSO
+    <text x="0" y="-3" text-anchor="middle" fill="#c9a227" font-size={boardBadgeFontSize} font-weight="800" font-family="Georgia, serif">
+      {boardBadgeTitle.toUpperCase()}
     </text>
     <text x="0" y="14" text-anchor="middle" fill="#fff" font-size="9">Édition Formation</text>
   </g>
@@ -429,12 +452,12 @@
 
 <style>
   .board {
-    width: 100%;
-    max-width: min(96vh, 1000px);
-    max-height: min(92vh, 1000px);
+    width: min(100cqw, 100cqh);
     height: auto;
+    max-width: 100%;
+    max-height: 100%;
     display: block;
-    filter: drop-shadow(0 24px 48px rgb(0 0 0 / 45%));
+    filter: drop-shadow(0 16px 32px rgb(0 0 0 / 40%));
   }
 
   .tile-glow {
@@ -452,6 +475,10 @@
   }
 
   circle.current {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  :global(g.animal-pawn.current) {
     animation: pulse 1.2s ease-in-out infinite;
   }
 

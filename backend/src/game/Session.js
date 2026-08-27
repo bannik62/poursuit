@@ -8,6 +8,8 @@ import {
   homeTheme,
   startingPosition,
   CENTER_INDEX,
+  DEFAULT_EVENT_TITLE,
+  MAX_EVENT_TITLE_LENGTH,
 } from '../../shared/game/index.js';
 
 const MIN_PLAYERS = Number(process.env.MIN_PLAYERS) || 2;
@@ -43,6 +45,7 @@ export class Session {
       slot: index,
       name: null,
       color: null,
+      animal: null,
       connected: false,
       token: randomBytes(8).toString('hex'),
       position: 0,
@@ -59,6 +62,7 @@ export class Session {
     this.showQuestionOnPlateau = false;
     this.requireExactCenterRoll = true;
     this.fastGame = false;
+    this.eventTitle = DEFAULT_EVENT_TITLE;
     /** Défi en cours : qui a lancé le défi */
     this._challengeFrom = null;
     /** Questions déjà posées dans cette partie (tous joueurs) */
@@ -129,6 +133,11 @@ export class Session {
 
   setFastGame(enabled) {
     this.fastGame = Boolean(enabled);
+  }
+
+  setEventTitle(title) {
+    const trimmed = String(title ?? '').trim().slice(0, MAX_EVENT_TITLE_LENGTH);
+    this.eventTitle = trimmed || DEFAULT_EVENT_TITLE;
   }
 
   /**
@@ -470,7 +479,13 @@ export class Session {
       .map((p) => p.color);
   }
 
-  joinPlayer(token, name, color) {
+  takenAnimals(exceptSlot = null) {
+    return this.players
+      .filter((p) => p.connected && p.animal != null && p.slot !== exceptSlot)
+      .map((p) => p.animal);
+  }
+
+  joinPlayer(token, name, animal) {
     const player = this.players.find((p) => p.token === token);
     if (!player) return { error: 'Token invalide' };
 
@@ -482,19 +497,21 @@ export class Session {
     }
 
     const reconnected = Boolean(player.name);
-    const colorId = Number(color);
+    const animalId = Number(animal);
 
     if (!reconnected) {
-      if (!Number.isInteger(colorId) || colorId < 0 || colorId > 5) {
-        return { error: 'Choisissez une couleur' };
+      if (!Number.isInteger(animalId) || animalId < 0 || animalId > 7) {
+        return { error: 'Choisissez un animal' };
       }
-      if (this.takenColors(player.slot).includes(colorId)) {
-        return { error: 'Cette couleur est déjà prise' };
+      if (this.takenAnimals(player.slot).includes(animalId)) {
+        return { error: 'Cet animal est déjà pris' };
       }
-      player.color = colorId;
-    } else if (player.color == null && Number.isInteger(colorId) && colorId >= 0 && colorId <= 5) {
-      if (!this.takenColors(player.slot).includes(colorId)) {
-        player.color = colorId;
+      player.animal = animalId;
+      player.color = animalId % 6;
+    } else if (player.animal == null && Number.isInteger(animalId) && animalId >= 0 && animalId <= 7) {
+      if (!this.takenAnimals(player.slot).includes(animalId)) {
+        player.animal = animalId;
+        player.color = animalId % 6;
       }
     }
 
@@ -521,6 +538,7 @@ export class Session {
       showQuestionOnPlateau: this.showQuestionOnPlateau,
       requireExactCenterRoll: this.requireExactCenterRoll,
       fastGame: this.fastGame,
+      eventTitle: this.eventTitle,
       challengeFrom: this._challengeFrom,
       players: this.players.map(({ token, ...rest }) => rest),
     };

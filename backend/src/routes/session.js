@@ -11,9 +11,10 @@ const router = Router();
 
 router.post('/', (req, res) => {
   const playerCount = Number(req.body?.playerCount);
+  const eventTitle = req.body?.eventTitle;
 
   try {
-    const session = createSession(playerCount);
+    const session = createSession(playerCount, eventTitle);
     const payload = session.toAdminJSON(process.env.PUBLIC_URL);
     res.status(201).json(payload);
   } catch (err) {
@@ -71,6 +72,10 @@ router.patch('/:id/settings', (req, res) => {
 
   if (typeof req.body?.fastGame === 'boolean') {
     session.setFastGame(req.body.fastGame);
+  }
+
+  if (typeof req.body?.eventTitle === 'string') {
+    session.setEventTitle(req.body.eventTitle);
   }
 
   broadcastSessionState(session);

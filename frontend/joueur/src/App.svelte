@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { playerColorHex } from '@trivial-asso/game';
+  import { playerAnimalHex } from '@trivial-asso/game';
   import { joinGame } from './lib/api.js';
   import { subscribePlayer, disconnectSocket } from './lib/socket.js';
   import ScreenJoin from './components/ScreenJoin.svelte';
@@ -15,7 +15,7 @@
 
   let phase = $state(token ? 'join' : 'error');
   let name = $state('');
-  let color = $state(null);
+  let animal = $state(null);
   let error = $state(token ? '' : 'Lien invalide. Scannez le QR code fourni par le formateur.');
   let loading = $state(false);
   let player = $state(null);
@@ -35,8 +35,8 @@
   /** @type {{ resolve: (answer: object) => void, reject: (err: Error) => void } | null} */
   let pendingAnswer = null;
 
-  function applyPlayerBackground(colorId) {
-    const hex = colorId != null ? playerColorHex(colorId) : null;
+  function applyPlayerBackground(animalId) {
+    const hex = animalId != null ? playerAnimalHex(animalId) : null;
     if (!hex) {
       document.documentElement.style.removeProperty('--player-bg');
       document.documentElement.style.removeProperty('--player-bg-soft');
@@ -49,14 +49,14 @@
   }
 
   $effect(() => {
-    if (color != null) applyPlayerBackground(color);
+    if (animal != null) applyPlayerBackground(animal);
   });
 
-  function persistPlayer(sessionId, colorId) {
+  function persistPlayer(sessionId, animalId) {
     if (!storageKey || !name) return;
     sessionStorage.setItem(
       storageKey,
-      JSON.stringify({ name, sessionId, color: colorId ?? color }),
+      JSON.stringify({ name, sessionId, animal: animalId ?? animal }),
     );
   }
 
@@ -64,10 +64,10 @@
     if (!player || player.slot == null) return;
     const me = state.players?.find((p) => p.slot === player.slot);
     if (me) {
-      player = { slot: me.slot, name: me.name, color: me.color };
-      if (me.color != null) {
-        color = me.color;
-        applyPlayerBackground(me.color);
+      player = { slot: me.slot, name: me.name, color: me.color, animal: me.animal };
+      if (me.animal != null) {
+        animal = me.animal;
+        applyPlayerBackground(me.animal);
       }
     }
   }
@@ -173,19 +173,19 @@
     selectChallengeFn = conn.selectChallenge;
   }
 
-  async function enterSession(playerName, playerColor) {
+  async function enterSession(playerName, playerAnimal) {
     error = '';
     loading = true;
     name = playerName;
-    if (playerColor != null) color = playerColor;
+    if (playerAnimal != null) animal = playerAnimal;
 
     try {
-      const data = await joinGame(token, name, color);
+      const data = await joinGame(token, name, animal);
       player = data.player;
       session = data.session;
-      color = data.player.color ?? color;
-      applyPlayerBackground(color);
-      persistPlayer(data.sessionId, color);
+      animal = data.player.animal ?? animal;
+      applyPlayerBackground(animal);
+      persistPlayer(data.sessionId, animal);
       phase =
         data.session.status === 'playing' || data.session.status === 'finished'
           ? 'game'
@@ -201,11 +201,11 @@
 
   async function join(e) {
     e.preventDefault();
-    if (color == null) {
-      error = 'Choisissez une couleur';
+    if (animal == null) {
+      error = 'Choisissez un animal';
       return;
     }
-    await enterSession(name, color);
+    await enterSession(name, animal);
   }
 
   function quitGame() {
@@ -217,11 +217,10 @@
     player = null;
     session = null;
     name = '';
-    color = null;
+    animal = null;
     pendingRoll = null;
     pendingAnswer = null;
     rolling = false;
-    // Enlever le token de l’URL pour éviter une reconnexion auto
     const url = new URL(window.location.href);
     url.searchParams.delete('token');
     window.history.replaceState({}, '', url.pathname);
@@ -233,14 +232,14 @@
       const saved = sessionStorage.getItem(storageKey);
       if (saved) {
         try {
-          const { name: savedName, color: savedColor } = JSON.parse(saved);
+          const { name: savedName, animal: savedAnimal } = JSON.parse(saved);
           if (savedName) {
-            if (savedColor != null) {
-              color = savedColor;
-              applyPlayerBackground(savedColor);
+            if (savedAnimal != null) {
+              animal = savedAnimal;
+              applyPlayerBackground(savedAnimal);
             }
             phase = 'loading';
-            enterSession(savedName, savedColor);
+            enterSession(savedName, savedAnimal);
           }
         } catch {
           // ignore
@@ -257,7 +256,7 @@
 </script>
 
 {#if phase === 'join'}
-  <ScreenJoin bind:name bind:color {token} {loading} onsubmit={join} />
+  <ScreenJoin bind:name bind:animal {token} {loading} onsubmit={join} />
 {:else if phase === 'waiting' && player && session}
   <ScreenWaiting playerSlot={player.slot} {session} />
 {:else if phase === 'game' && player && session}

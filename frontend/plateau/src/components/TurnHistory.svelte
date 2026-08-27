@@ -52,13 +52,14 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 1rem 1.15rem;
-    min-width: 280px;
-    max-width: 320px;
+    width: min(320px, 28vw);
+    min-width: 240px;
     flex: 1;
-    min-height: 180px;
-    max-height: min(36vh, 320px);
+    min-height: 0;
+    max-height: none;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
     backdrop-filter: blur(10px);
     box-shadow: 0 12px 32px rgb(0 0 0 / 30%);
   }
