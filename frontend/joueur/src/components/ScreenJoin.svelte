@@ -82,7 +82,7 @@
         type="text"
         placeholder="Ex. Marie"
         bind:value={name}
-        maxlength="24"
+        maxlength="15"
         autocomplete="given-name"
         required
         disabled={loading}

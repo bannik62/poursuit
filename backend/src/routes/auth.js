@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { bumpAdminTokenVersion, getAdminTokenVersion } from '../state/authState.js';
 
 const router = Router();
 
@@ -28,7 +29,9 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Identifiants invalides' });
   }
 
-  const token = jwt.sign({ role: 'admin', username }, jwtSecret, {
+  // Invalider tous les anciens jetons à chaque nouveau login
+  const tv = bumpAdminTokenVersion();
+  const token = jwt.sign({ role: 'admin', username, tv }, jwtSecret, {
     expiresIn: '8h',
   });
 
@@ -50,7 +53,9 @@ router.post('/login', async (req, res) => {
   res.json({ ok: true });
 });
 
-router.post('/logout', (_req, res) => {
+router.post('/logout', (req, res) => {
+  // Invalider immédiatement le jeton courant
+  bumpAdminTokenVersion();
   res.clearCookie('token');
   res.json({ ok: true });
 });

@@ -3,6 +3,14 @@ import { Session } from '../game/Session.js';
 /** @type {Map<string, Session>} */
 const sessions = new Map();
 
+const MAX_SESSIONS =
+  Number(process.env.SESSIONS_MAX || process.env.MAX_SESSIONS) || 20;
+const SESSION_TTL_MINUTES = Number(process.env.SESSIONS_TTL_MINUTES) || 120;
+const FINISHED_SESSION_TTL_MINUTES =
+  Number(process.env.FINISHED_SESSIONS_TTL_MINUTES) || 60;
+const SWEEP_INTERVAL_MS =
+  Number(process.env.SESSIONS_SWEEP_INTERVAL_MS) || 60 * 1000;
+
 /** @type {import('socket.io').Server | null} */
 let io = null;
 
@@ -16,6 +24,9 @@ export function broadcastSessionState(session) {
 }
 
 export function createSession(playerCount, eventTitle) {
+  if (sessions.size >= MAX_SESSIONS) {
+    throw new Error('Trop de sessions actives, réessayez plus tard');
+  }
   const session = new Session(playerCount);
   if (eventTitle != null) session.setEventTitle(eventTitle);
   sessions.set(session.id, session);
@@ -36,6 +47,26 @@ export function findSessionByPlayerToken(token) {
     if (player) return { session, player };
   }
   return null;
+}
+
+export function startSessionJanitor() {
+  const ttlMs = SESSION_TTL_MINUTES * 60 * 1000;
+  const finishedTtlMs = FINISHED_SESSION_TTL_MINUTES * 60 * 1000;
+  setInterval(() => {
+    const now = Date.now();
+    for (const [id, s] of [...sessions.entries()]) {
+      // Nettoyer les parties finies après un délai
+      if (s.status === 'finished' && s.finishedAt && now - s.finishedAt > finishedTtlMs) {
+        sessions.delete(id);
+        continue;
+      }
+      // Abandonnées: personne connecté depuis longtemps
+      if (s.connectedCount === 0 && now - s.createdAt > ttlMs) {
+        sessions.delete(id);
+        continue;
+      }
+    }
+  }, SWEEP_INTERVAL_MS).unref?.();
 }
 
 export function registerGameHandler(socketIo) {
