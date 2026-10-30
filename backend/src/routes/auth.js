@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { bumpAdminTokenVersion, getAdminTokenVersion } from '../state/authState.js';
+import { bumpAdminTokenVersion } from '../state/authState.js';
 
 const router = Router();
 
