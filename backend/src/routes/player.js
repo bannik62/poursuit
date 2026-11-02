@@ -37,6 +37,9 @@ router.post('/join', (req, res) => {
   }
 
   const trimmed = String(name ?? '').trim();
+  if (trimmed.length > 15) {
+    return res.status(400).json({ error: 'Prénom trop long (max 15 caractères)' });
+  }
 
   if (found.session.status !== 'lobby') {
     if (!found.player.name) {
@@ -47,7 +50,7 @@ router.post('/join', (req, res) => {
     }
   }
 
-  const result = found.session.joinPlayer(token, name, animal);
+  const result = found.session.joinPlayer(token, trimmed, animal);
   if (result.error) {
     return res.status(400).json({ error: result.error });
   }

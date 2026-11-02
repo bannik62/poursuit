@@ -83,8 +83,15 @@ Dashboard ngrok : http://localhost:4040
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Identifiants formateur |
 | `PUBLIC_URL` | URL dans les **QR codes** (doit être joignable par le téléphone) |
 | `FRONTEND_URL` | Origine CORS + Socket.IO (même domaine qu’admin en prod) |
+| `TRUST_PROXY_HOPS` | Nombre de proxies de confiance (par défaut `2` pour Apache + nginx) |
 | `NGROK_AUTHTOKEN` | Token ngrok (dev téléphone uniquement) |
 | `MIN_PLAYERS` / `MAX_PLAYERS` | 2 à 4 joueurs |
+| `RATE_LIMIT_LOGIN_WINDOW_MS` / `RATE_LIMIT_LOGIN_MAX` | Fenêtre + quota IP pour `/api/auth/login` |
+| `RATE_LIMIT_PLAYER_WINDOW_MS` / `RATE_LIMIT_PLAYER_MAX` | Fenêtre + quota IP pour `/api/player/(join|lobby)` |
+| `SESSIONS_MAX` | Nombre max de sessions concurrentes (en mémoire) |
+| `SESSIONS_TTL_MINUTES` | Nettoyage des sessions « abandonnées » (aucun joueur connecté) |
+| `FINISHED_SESSIONS_TTL_MINUTES` | TTL des sessions terminées avant suppression |
+| `SESSIONS_SWEEP_INTERVAL_MS` | Fréquence du nettoyage (par défaut 60s) |
 
 | Contexte | `PUBLIC_URL` / `FRONTEND_URL` |
 |----------|-------------------------------|
@@ -146,6 +153,14 @@ curl -s https://game.vitalinfo.site/api/health
 2. **Joueurs** scannent → `POST /api/player/join` → lobby (Socket.IO)
 3. Quand tous connectés → **Lancer la partie** → ouverture plateau + sync temps réel
 4. **Reset** possible à tout moment depuis l’admin
+
+Sécurité en bref :
+
+- Rate limiting par IP sur `/api/auth/login` et `/api/player/(join|lobby)` (via `express-rate-limit`, `trust proxy` réglé pour Apache + nginx)
+- `helmet` activé (CSP/COEP assouplis pour ne pas casser Svelte, Socket.IO, QR)
+- Nom joueur validé côté serveur (trim, longueur max **15**) + `maxlength=15` côté frontend
+- Sessions en mémoire avec plafond (`SESSIONS_MAX`) et nettoyage périodique (TTL « abandonnée » et « terminée »)
+- Jetons admin JWT **révoqués** à chaque login et logout (version serveur)
 
 Événements Socket.IO : `session:subscribe`, `player:subscribe`, `session:state`, `game:start`, `game:dice`, `game:answer`, `game:over` — voir [`doc/architecture.md`](doc/architecture.md).
 

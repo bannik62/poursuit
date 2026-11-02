@@ -2,18 +2,42 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.js';
 import sessionRoutes from './routes/session.js';
 import playerRoutes from './routes/player.js';
 import configRoutes from './routes/config.js';
 import { authJwt } from './middleware/authJwt.js';
-import { registerGameHandler } from './socket/gameHandler.js';
+import { registerGameHandler, startSessionJanitor } from './socket/gameHandler.js';
+import { installRateLimiters } from './middleware/rateLimit.js';
 
 const app = express();
-if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', 1);
+// Trust proxy: Apache + nginx en frontal → 2 sauts par défaut (configurable)
+{
+  const trustProxyEnv = process.env.TRUST_PROXY_HOPS?.trim();
+  const trustProxy =
+    trustProxyEnv == null || trustProxyEnv === ''
+      ? 2
+      : trustProxyEnv === 'true'
+      ? true
+      : trustProxyEnv === 'false'
+      ? false
+      : Number.isNaN(Number(trustProxyEnv))
+      ? 2
+      : Number(trustProxyEnv);
+  app.set('trust proxy', trustProxy);
 }
+// Helmet + retirer X-Powered-By
+app.disable('x-powered-by');
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    hidePoweredBy: true,
+  }),
+);
 const httpServer = createServer(app);
 
 function normalizeOrigin(value) {
@@ -79,6 +103,9 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'trivial-asso-backend' });
 });
 
+// Rate limiting ciblé
+installRateLimiters(app);
+
 app.use('/api/auth', authRoutes);
 
 app.get('/api/admin/me', authJwt, (req, res) => {
@@ -90,6 +117,7 @@ app.use('/api/player', playerRoutes);
 app.use('/api/config', configRoutes);
 
 registerGameHandler(io);
+startSessionJanitor();
 
 const port = Number(process.env.PORT) || 3000;
 httpServer.listen(port, () => {

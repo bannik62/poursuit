@@ -68,6 +68,7 @@ export class Session {
     /** Questions déjà posées dans cette partie (tous joueurs) */
     this.askedQuestionIds = [];
     this.createdAt = Date.now();
+    this.finishedAt = null;
   }
 
   startGame() {
@@ -158,6 +159,7 @@ export class Session {
     if (racers.length <= 1 && this.podium.length >= 1) {
       this.status = 'finished';
       this.winner = this.podium[0];
+      this.finishedAt = Date.now();
       this.phase = 'roll';
       return { finished: true, gameOver: true };
     }
@@ -450,6 +452,7 @@ export class Session {
       if (racers.length <= 1) {
         this.status = 'finished';
         this.winner = this.podium[0];
+        this.finishedAt = Date.now();
         return { changed: true, gameOver: true };
       }
     }
@@ -491,6 +494,7 @@ export class Session {
 
     const trimmed = String(name ?? '').trim();
     if (!trimmed) return { error: 'Prénom requis' };
+    if (trimmed.length > 15) return { error: 'Prénom trop long (max 15 caractères)' };
 
     if (player.name && player.name !== trimmed) {
       return { error: 'Token déjà utilisé' };
